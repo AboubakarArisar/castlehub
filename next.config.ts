@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
+// Cache Components is off: almost every CastleHub page reads the session or
+// fresh rows, so the previous dynamic-rendering model is simpler here.
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  devIndicators: false,
   turbopack: {
     rules: {
       "*.css": {

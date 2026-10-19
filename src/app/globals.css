@@ -1,26 +1,278 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+/* dark: matches the .dark class, or the system setting when no theme is pinned. */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not(.light) *) {
+      @slot;
+    }
+  }
+}
+
+/* CastleHub "Sky Workshop" tokens. Values match the Visual identity spec. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f6f4ee;
+  --surface: #ffffff;
+  --surface-2: #efece3;
+  --ink: #16150f;
+  --muted: #66625a;
+  --line: #e2ded3;
+  --line-strong: #c9c4b6;
+  --cobalt: #2448ff;
+  --on-cobalt: #ffffff;
+  --amber: #ffb020;
+  --amber-ink: #1c1400;
+  --green: #0b7a3d;
+  --red: #d12f35;
+  color-scheme: light;
+}
+
+/* Dark tokens: explicit .dark class, or system dark when no choice is stored. */
+.dark {
+  --paper: #0f0f0c;
+  --surface: #181814;
+  --surface-2: #201f1a;
+  --ink: #f1eee6;
+  --muted: #a29d92;
+  --line: #2b2a24;
+  --line-strong: #3d3b33;
+  --cobalt: #7b90ff;
+  --on-cobalt: #0f0f0c;
+  --amber: #ffc04d;
+  --amber-ink: #1c1400;
+  --green: #3dd68c;
+  --red: #ff6b70;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --paper: #0f0f0c;
+    --surface: #181814;
+    --surface-2: #201f1a;
+    --ink: #f1eee6;
+    --muted: #a29d92;
+    --line: #2b2a24;
+    --line-strong: #3d3b33;
+    --cobalt: #7b90ff;
+    --on-cobalt: #0f0f0c;
+    --amber: #ffc04d;
+    --amber-ink: #1c1400;
+    --green: #3dd68c;
+    --red: #ff6b70;
+    color-scheme: dark;
+  }
+}
+
+/* shadcn/ui reads these names; point them at the CastleHub tokens. */
+:root {
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--cobalt);
+  --primary-foreground: var(--on-cobalt);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--ink);
+  --muted-foreground: var(--muted);
+  --accent: var(--surface-2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--red);
+  --border: var(--line);
+  --input: var(--line-strong);
+  --ring: var(--cobalt);
+  --radius: 0.125rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-cobalt: var(--cobalt);
+  --color-on-cobalt: var(--on-cobalt);
+  --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
+  --color-green: var(--green);
+  --color-red: var(--red);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-bricolage), var(--font-geist-sans), sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 4px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Type scale (Visual identity → Typography system). */
+@utility text-display-xl {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.75rem;
+  line-height: 2.625rem;
+  letter-spacing: -0.045em;
+  @media (width >= 48rem) {
+    font-size: 4rem;
+    line-height: 3.75rem;
+  }
+}
+@utility text-display-l {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 2rem;
+  letter-spacing: -0.04em;
+  @media (width >= 48rem) {
+    font-size: 2.5rem;
+    line-height: 2.5rem;
+  }
+}
+@utility text-title-l {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.75rem;
+  letter-spacing: -0.02em;
+}
+@utility text-title-m {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  letter-spacing: -0.01em;
+}
+@utility text-body-l {
+  font-size: 1rem;
+  line-height: 1.625rem;
+}
+@utility text-body {
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+}
+@utility text-body-s {
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+}
+@utility text-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+@utility text-count {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+/* One emphasised word inside a display line. */
+@utility accent-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.08em;
+  letter-spacing: -0.01em;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans bg-paper text-ink;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-paper text-ink;
+  }
+  :focus-visible {
+    outline: 2px solid var(--cobalt);
+    outline-offset: 2px;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Upvote: the new count rolls up, the arrow stamps in. */
+@keyframes roll-up {
+  from {
+    transform: translateY(70%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes stamp {
+  0% {
+    transform: scale(0.82);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.animate-roll-up {
+  animation: roll-up 160ms ease-out;
+}
+.animate-stamp {
+  animation: stamp 160ms ease-out;
+}
+.animate-eq {
+  transform-origin: bottom;
+  animation: eq 900ms ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-roll-up,
+  .animate-stamp,
+  .animate-eq {
+    animation: none !important;
+  }
 }
