@@ -10,8 +10,7 @@ import {
   Palette,
 } from "lucide-react";
 import { LandingHero, SlackButton } from "@/components/landing-hero";
-import { Logo, Wordmark } from "@/components/logo";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { getViewer } from "@/lib/session";
 import castleSky from "../../public/landing/castle-sky.png";
 
@@ -43,7 +42,8 @@ const TYPES = [
 ];
 
 export default async function Landing() {
-  const signedIn = Boolean(await getViewer());
+  const viewer = await getViewer();
+  const signedIn = Boolean(viewer);
   const feedButton = (
     <Link
       href="/feed"
@@ -54,37 +54,12 @@ export default async function Landing() {
   );
   return (
     <div className="min-h-dvh">
-      <header className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-4 md:px-6">
-        <Link href="/" aria-label="castlehub home">
-          <Wordmark />
-        </Link>
-        <nav aria-label="Main" className="flex items-center gap-1 md:gap-2">
-          <Link href="/discover" className="hidden h-9 items-center rounded-sm px-3 text-body text-muted transition-colors duration-120 hover:text-ink md:inline-flex">
-            discover
-          </Link>
-          <Link href="#how" className="hidden h-9 items-center rounded-sm px-3 text-body text-muted transition-colors duration-120 hover:text-ink md:inline-flex">
-            how it works
-          </Link>
-          <ThemeToggle />
-          {signedIn ? (
-            <Link
-              href="/feed"
-              className="ml-1 inline-flex h-9 items-center rounded-sm bg-cobalt px-3.5 text-body font-semibold text-on-cobalt transition-transform duration-120 hover:-translate-y-px"
-            >
-              open the feed
-            </Link>
-          ) : (
-            <span className="ml-1">
-              <SlackButton size="sm" />
-            </span>
-          )}
-        </nav>
-      </header>
+      <SiteHeader viewer={viewer} />
 
       <main>
         <LandingHero signedIn={signedIn} />
 
-        <section id="how" className="mx-auto max-w-[1240px] scroll-mt-6 px-4 pt-24 md:px-6 md:pt-32">
+        <section id="how" className="mx-auto max-w-[1080px] scroll-mt-6 px-4 pt-24 md:px-6 md:pt-32">
           <h2 className="text-display-l max-w-[18ch]">
             a place for the <span className="accent-serif">whole</span> build, not just the launch
           </h2>
@@ -99,7 +74,7 @@ export default async function Landing() {
           </ol>
         </section>
 
-        <section className="mx-auto max-w-[1240px] px-4 pt-20 md:px-6 md:pt-28" aria-labelledby="types-h">
+        <section className="mx-auto max-w-[1080px] px-4 pt-20 md:px-6 md:pt-28" aria-labelledby="types-h">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="types-h" className="text-display-l">made in the castle</h2>
             <p className="text-label text-muted">six kinds of project, one feed</p>
@@ -120,7 +95,7 @@ export default async function Landing() {
           </ul>
         </section>
 
-        <section className="mx-auto max-w-[1240px] px-4 pt-20 md:px-6 md:pt-28">
+        <section className="mx-auto max-w-[1080px] px-4 pt-20 md:px-6 md:pt-28">
           <div className="grid gap-6 border border-line-strong p-6 md:grid-cols-[1fr_auto] md:items-center md:p-10">
             <div>
               <p className="text-label text-muted">slack</p>
@@ -154,12 +129,7 @@ export default async function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between md:px-6">
-          <Logo className="h-10 w-auto md:h-12" />
-          <p className="text-label text-muted">castlehub · キャッスルハブ · made for skycastle builders</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

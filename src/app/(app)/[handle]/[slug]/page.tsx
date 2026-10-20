@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink, Pencil } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { MediaEmbed } from "@/components/media";
 import { Post } from "@/components/post";
+import { ProjectGallery } from "@/components/project-gallery";
 import { ProjectIcon } from "@/components/project-row";
 import { ProjectUpvote } from "@/components/reactions";
 import { getFeed, getProject } from "@/lib/queries";
@@ -38,14 +39,32 @@ export default async function ProjectPage({ params }: PageProps<"/[handle]/[slug
         )}
       </div>
 
-      <header className="flex flex-col items-center px-4 pt-8 pb-6 text-center md:px-6">
-        <ProjectIcon name={project.name} src={project.iconUrl} size={88} />
-        <h1 className="text-display-l mt-5">{project.name}</h1>
-        <p className="mt-2 max-w-[44ch] text-body-l text-muted">{project.tagline}</p>
-        <Link href={`/${project.owner.handle}`} className="mt-3 inline-flex items-center gap-2 text-body font-semibold hover:underline">
-          <Avatar seed={project.owner.handle ?? project.owner.id} src={project.owner.image} size={24} /> {project.owner.name}
-        </Link>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+      <header className="border-b border-line px-4 py-6 md:px-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+          <ProjectIcon name={project.name} src={project.iconUrl} size={72} />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-display-l break-words">{project.name}</h1>
+            <p className="mt-1.5 text-body-l text-muted">{project.tagline}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <Link href={`/${project.owner.handle}`} className="inline-flex items-center gap-2 text-body font-semibold hover:underline">
+                <Avatar seed={project.owner.handle ?? project.owner.id} src={project.owner.image} size={22} /> {project.owner.name}
+              </Link>
+              <span className="text-label flex flex-wrap gap-x-2 text-muted">
+                <span>{TYPE_LABEL[project.type]}</span>
+                {project.launchWeek && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <Link href={`/launchpad?week=${project.launchWeek}`} className="text-cobalt hover:underline">
+                      launchpad week {Number(project.launchWeek.slice(-2))}
+                    </Link>
+                  </>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <ProjectUpvote projectId={project.id} count={project._count.upvotes} upvoted={project.upvoted} canVote={Boolean(viewer?.handle)} large />
           {project.websiteUrl && (
             <a
               href={project.websiteUrl}
@@ -56,33 +75,11 @@ export default async function ProjectPage({ params }: PageProps<"/[handle]/[slug
               visit <ExternalLink className="size-4" />
             </a>
           )}
-          <ProjectUpvote projectId={project.id} count={project._count.upvotes} upvoted={project.upvoted} canVote={Boolean(viewer?.handle)} large />
         </div>
-        <p className="text-label mt-4 flex flex-wrap justify-center gap-x-2 text-muted">
-          <span>{TYPE_LABEL[project.type]}</span>
-          {project.launchWeek && (
-            <>
-              <span aria-hidden="true">·</span>
-              <Link href={`/launchpad?week=${project.launchWeek}`} className="text-cobalt hover:underline">
-                launchpad {project.launchWeek.replace("-W", " · week ")}
-              </Link>
-            </>
-          )}
-        </p>
       </header>
 
-      {project.images.length > 0 && (
-        <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto border-y border-line px-4 py-4 md:px-6" aria-label="Screenshots">
-          {project.images.map((img, i) => (
-            <a key={img.id} href={img.url} target="_blank" rel="noopener noreferrer" className="shrink-0 snap-start border border-line-strong">
-              {/* eslint-disable-next-line @next/next/no-img-element -- uploaded screenshots */}
-              <img src={img.url} alt={`${project.name} screenshot ${i + 1}`} className="h-56 w-auto max-w-[85vw] bg-surface-2 object-cover md:h-72" loading="lazy" />
-            </a>
-          ))}
-        </div>
-      )}
-
       <div className="space-y-5 px-4 py-6 md:px-6">
+        {project.images.length > 0 && <ProjectGallery images={project.images} name={project.name} />}
         {project.mediaUrl && <MediaEmbed url={project.mediaUrl} title={project.slug} />}
         <p className="text-body-l break-words whitespace-pre-wrap">{project.description}</p>
         {project.tags.length > 0 && (

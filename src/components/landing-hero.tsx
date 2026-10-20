@@ -13,7 +13,7 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
         className="pointer-events-none absolute inset-x-0 top-0 h-[560px] [background-image:radial-gradient(var(--line-strong)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(to_bottom,black_40%,transparent)]"
       />
 
-      <div className="relative mx-auto max-w-[1240px] px-4 pt-12 text-center md:px-6 md:pt-20">
+      <div className="relative mx-auto max-w-[1080px] px-4 pt-12 text-center md:px-6 md:pt-20">
         <Link
           href="/discover"
           className="inline-flex items-center gap-2 rounded-sm border border-line bg-surface px-3 py-1.5 transition-colors duration-120 hover:border-line-strong"
