@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Search, Settings, ShieldCheck } from "lucide-react";
+import { Heart, Plus, Search, Settings, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { SlackButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
@@ -111,7 +111,15 @@ export function SiteFooter() {
         </nav>
       </div>
       <div className="border-t border-line">
-        <p className="text-label mx-auto max-w-[1200px] px-4 py-4 text-muted md:px-6">castlehub · キャッスルハブ · made for skycastle builders</p>
+        <p className="text-label mx-auto max-w-[1200px] px-4 py-4 text-muted md:px-6">
+          castlehub · キャッスルハブ · made with{" "}
+          <Heart className="inline size-3 -translate-y-px fill-red text-red" aria-label="love" />{" "}
+          by{" "}
+          <a href="https://github.com/AboubakarArisar" target="_blank" rel="noopener noreferrer" className="text-ink underline-offset-2 hover:text-cobalt hover:underline">
+            abou bakar
+          </a>{" "}
+          for skycastle builders
+        </p>
       </div>
     </footer>
   );
