@@ -23,6 +23,8 @@ model User {
   website     String?
   skills      String[] @default([])
   slackTeamId String?
+  // Set by an admin: a suspended user can read but not post, comment, react or publish.
+  suspendedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -197,4 +199,19 @@ model Comment {
 
   @@index([postId, createdAt])
   @@index([projectId, createdAt])
+}
+
+// ── Admin ──────────────────────────────────────────────────
+
+// Every admin action, with a snapshot of what it touched (deleted rows are gone).
+model AdminAction {
+  id          String   @id @default(cuid())
+  adminId     String
+  adminHandle String?
+  action      String // delete_post, delete_comment, delete_project, suspend, unsuspend
+  targetId    String
+  summary     String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
 }

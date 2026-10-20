@@ -6,6 +6,7 @@ import { saveImage, UploadError } from "@/lib/storage";
 export async function POST(request: Request) {
   const viewer = await getViewer();
   if (!viewer) return NextResponse.json({ error: "Sign in to upload." }, { status: 401 });
+  if (viewer.suspendedAt) return NextResponse.json({ error: "Your account is suspended." }, { status: 403 });
 
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");

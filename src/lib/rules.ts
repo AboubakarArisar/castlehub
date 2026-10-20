@@ -5,7 +5,7 @@ import { z } from "zod";
 // Top-level routes a handle must never shadow.
 export const RESERVED_HANDLES = new Set([
   "api", "post", "feed", "discover", "launchpad", "projects", "settings", "signin", "signout",
-  "onboarding", "builders", "admin", "about", "help", "terms", "privacy", "new", "edit",
+  "onboarding", "builders", "admin", "suspended", "about", "help", "terms", "privacy", "new", "edit",
   "castlehub", "skycastle", "slack", "uploads", "_next", "static", "public",
 ]);
 

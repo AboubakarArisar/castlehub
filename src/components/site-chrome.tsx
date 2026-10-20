@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { SlackButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
@@ -44,6 +44,16 @@ export function SiteHeader({ viewer }: { viewer: Viewer | null }) {
               >
                 <Plus className="size-4" /> publish
               </Link>
+              {viewer.isAdmin && (
+                <Link
+                  href="/admin"
+                  aria-label="Admin"
+                  title="Admin"
+                  className="hidden size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-cobalt hover:text-cobalt sm:grid"
+                >
+                  <ShieldCheck className="size-4" />
+                </Link>
+              )}
               <Link
                 href="/settings"
                 aria-label="Settings"
