@@ -56,6 +56,10 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
         <span><span className="font-semibold text-ink">The castle has no borders.</span> <span className="text-muted">See where builders are building on the World Map.</span></span>
         <span className="shrink-0 text-cobalt">explore →</span>
       </Link>
+      <Link href="/roulette" className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 text-body-s hover:bg-surface md:px-6">
+        <span><span className="font-semibold text-ink">Feeling lucky?</span> <span className="text-muted">Spin the castle and meet a random builder or project.</span></span>
+        <span className="shrink-0 text-cobalt">spin →</span>
+      </Link>
 
       <nav aria-label="Filter by type" className="flex gap-1.5 overflow-x-auto border-b border-line px-4 py-3 md:px-6">
         {[undefined, ...PROJECT_TYPES].map((t) => {

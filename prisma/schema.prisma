@@ -56,6 +56,8 @@ model User {
   notified       Notification[]        @relation("actor")
   buildDays      BuildDay[]
   milestones     StreakMilestone[]
+  discoveries    Discovery[]           @relation("discoverer")
+  discoveredBy   Discovery[]           @relation("discovered")
 
   @@index([streakEnd])
   @@index([onWorldMap, countryCode])
@@ -139,6 +141,7 @@ model Project {
   posts         Post[]
   comments      Comment[]
   collaborators ProjectCollaborator[]
+  discoveries   Discovery[]
   notifications Notification[]
 
   @@unique([ownerId, slug])
@@ -321,4 +324,23 @@ model StreakMilestone {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, days])
+}
+
+// ── Builder Roulette ───────────────────────────────────────
+
+// Who a signed-in builder has met through Roulette, so "First Encounter!" shows once.
+// Private: only ever read for the discoverer's own spins, never shown to anyone else.
+model Discovery {
+  id        String   @id @default(cuid())
+  userId    String
+  builderId String?
+  projectId String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation("discoverer", fields: [userId], references: [id], onDelete: Cascade)
+  builder User?    @relation("discovered", fields: [builderId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, builderId])
+  @@unique([userId, projectId])
 }

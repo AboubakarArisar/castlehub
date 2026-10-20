@@ -342,3 +342,47 @@
     animation: none !important;
   }
 }
+
+/* Builder Roulette: the castle bobs while idle and shakes while shuffling; its ring turns slowly. */
+@keyframes castle-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes castle-shuffle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-4deg) translateY(-2px);
+  }
+  75% {
+    transform: rotate(4deg) translateY(-2px);
+  }
+}
+.animate-castle-float {
+  animation: castle-float 3.2s ease-in-out infinite;
+}
+.animate-castle-shuffle {
+  animation: castle-shuffle 280ms ease-in-out infinite;
+}
+@keyframes ring-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-ring {
+  animation: ring-turn 40s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-castle-float,
+  .animate-castle-shuffle,
+  .animate-ring {
+    animation: none !important;
+  }
+}

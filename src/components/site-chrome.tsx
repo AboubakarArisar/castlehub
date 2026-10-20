@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart, Plus, Search, Settings, ShieldCheck } from "lucide-react";
+import { Dices, Heart, Plus, Search, Settings, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { SlackButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
@@ -21,9 +21,10 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
   const unread = viewer ? await getUnreadCount(viewer.id) : 0;
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 md:px-6">
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-4 sm:gap-6 md:px-6">
         <Link href="/" aria-label="castlehub home" className="shrink-0">
-          <Wordmark className="[&>span:last-child]:text-[1.4rem]" />
+          {/* On the narrowest phones the castle icon stands alone, so every header button fits. */}
+          <Wordmark className="[&>span:last-child]:text-[1.4rem] max-[400px]:[&>span:last-child]:hidden" />
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
@@ -38,7 +39,7 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <Link
             href="/search"
             aria-label="Search"
@@ -46,6 +47,14 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
             className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-line-strong hover:text-ink"
           >
             <Search className="size-4" />
+          </Link>
+          <Link
+            href="/roulette"
+            aria-label="Builder Roulette"
+            title="Builder Roulette: meet a random builder"
+            className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-amber hover:text-amber"
+          >
+            <Dices className="size-4" />
           </Link>
           <ThemeToggle />
           {viewer && <NotificationBell initial={unread} />}
