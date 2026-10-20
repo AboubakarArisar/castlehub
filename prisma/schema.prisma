@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Auth.js ────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  // CastleHub profile. handle is claimed during onboarding.
+  handle      String?  @unique
+  headline    String?
+  bio         String?
+  website     String?
+  skills      String[] @default([])
+  slackTeamId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  projects       Project[]
+  posts          Post[]
+  projectUpvotes ProjectUpvote[]
+  postReactions  PostReaction[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ── Projects ───────────────────────────────────────────────
+
+enum ProjectType {
+  GAME
+  WEBSITE
+  AI_TOOL
+  MUSIC
+  ART
+  VIDEO
+  OTHER
+}
+
+model Project {
+  id          String      @id @default(cuid())
+  ownerId     String
+  slug        String
+  name        String
+  tagline     String
+  description String
+  type        ProjectType
+  tags        String[]    @default([])
+  websiteUrl  String?
+  // Optional video/audio/game link shown as an embed or play button.
+  mediaUrl    String?
+  iconUrl     String?
+  // ISO week ("2026-W43") when entered into the Launchpad; null = Discover only.
+  launchWeek  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images  ProjectImage[]
+  upvotes ProjectUpvote[]
+  posts   Post[]
+
+  @@unique([ownerId, slug])
+  @@index([createdAt])
+  @@index([type, createdAt])
+  @@index([launchWeek])
+}
+
+model ProjectImage {
+  id        String @id @default(cuid())
+  projectId String
+  url       String
+  position  Int
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model ProjectUpvote {
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([userId, projectId])
+  @@index([projectId])
+}
+
+// ── Feed ───────────────────────────────────────────────────
+
+model Post {
+  id        String   @id @default(cuid())
+  authorId  String
+  body      String
+  imageUrl  String?
+  projectId String?
+  createdAt DateTime @default(now())
+
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  project   Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  reactions PostReaction[]
+
+  @@index([createdAt])
+  @@index([authorId, createdAt])
+}
+
+enum ReactionKind {
+  UPVOTE
+  SHIP_IT
+  NEED_THIS
+  HOW
+}
+
+model PostReaction {
+  userId    String
+  postId    String
+  kind      ReactionKind
+  createdAt DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId, kind])
+  @@index([postId])
+}

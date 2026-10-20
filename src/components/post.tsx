@@ -1,58 +1,79 @@
+import Link from "next/link";
+import { Trash2 } from "lucide-react";
+import { deletePost } from "@/actions/post";
 import { Avatar } from "@/components/avatar";
-import { MediaWindow } from "@/components/media";
-import { Reactions } from "@/components/reactions";
-import { typeLabel, type DemoPost } from "@/lib/demo";
+import { ConfirmButton } from "@/components/confirm-button";
+import { ImageWindow } from "@/components/media";
+import { ProjectIcon } from "@/components/project-row";
+import { PostReactions } from "@/components/reactions";
+import type { FeedPost } from "@/lib/queries";
+import { timeAgo, TYPE_LABEL } from "@/lib/rules";
 
-export function Post({ post }: { post: DemoPost }) {
-  const { author } = post;
+export function Post({ post, viewerId, canReact }: { post: FeedPost; viewerId?: string; canReact: boolean }) {
+  const { author, project } = post;
+  const profile = `/${author.handle}`;
   return (
     <article className="flex gap-3 border-b border-line px-4 py-5 md:px-6">
-      <Avatar seed={author.handle} />
+      <Link href={profile} className="shrink-0" aria-label={`${author.name}'s profile`}>
+        <Avatar seed={author.handle ?? author.id} src={author.image} />
+      </Link>
       <div className="min-w-0 flex-1">
         <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="text-body font-semibold">{author.name}</span>
+          <Link href={profile} className="text-body font-semibold hover:underline">
+            {author.name}
+          </Link>
           <span className="text-body-s text-muted">@{author.handle}</span>
           <span className="text-body-s text-muted" aria-hidden="true">·</span>
-          <span className="text-body-s text-muted">{post.time}</span>
-          <span className="ml-auto flex gap-1.5">
-            <span className="text-label hidden rounded-sm border border-line px-1.5 py-0.5 text-muted sm:inline">{author.tag}</span>
-            <span className="text-label rounded-sm bg-surface-2 px-1.5 py-0.5 text-muted" title="Invented content for the prototype">
-              demo
+          <time className="text-body-s text-muted" dateTime={post.createdAt.toISOString()}>
+            {timeAgo(post.createdAt)}
+          </time>
+          {author.headline && (
+            <span className="text-label ml-auto hidden max-w-[40%] truncate rounded-sm border border-line px-1.5 py-0.5 text-muted sm:inline">
+              {author.headline}
             </span>
-          </span>
+          )}
         </header>
 
-        {post.title && <h2 className="mt-2 text-title-m">{post.title}</h2>}
-        <p className={`text-body-l line-clamp-6 ${post.title ? "mt-1" : "mt-2"}`}>{post.body}</p>
+        {post.body && <p className="mt-2 text-body-l break-words whitespace-pre-wrap">{post.body}</p>}
 
-        {post.media && (
+        {post.imageUrl && (
           <div className="mt-3">
-            <MediaWindow media={post.media} />
+            <ImageWindow src={post.imageUrl} alt={`Image posted by ${author.name}`} title={`${author.handle}-post`} label="image" />
           </div>
         )}
 
-        {post.project && (
-          <a
-            href="#"
+        {project && (
+          <Link
+            href={`/${project.owner.handle}/${project.slug}`}
             className="mt-3 flex items-center gap-3 border border-line px-3 py-2.5 transition-colors duration-120 hover:border-line-strong hover:bg-surface"
           >
-            <span className="grid size-9 shrink-0 place-items-center rounded-sm bg-ink font-display text-lg font-extrabold text-paper">
-              {post.project.name[0]}
-            </span>
+            <ProjectIcon name={project.name} src={project.iconUrl} size={36} />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
-                <span className="font-display text-[15px] font-bold tracking-[-0.01em]">{post.project.name}</span>
-                {post.project.launching && (
-                  <span className="text-label rounded-sm bg-amber px-1.5 py-0.5 text-amber-ink">launching</span>
-                )}
+                <span className="font-display text-[15px] font-bold tracking-[-0.01em]">{project.name}</span>
+                {project.launchWeek && <span className="text-label rounded-sm bg-amber px-1.5 py-0.5 text-amber-ink">launchpad</span>}
               </span>
-              <span className="block truncate text-body-s text-muted">{post.project.tagline}</span>
+              <span className="block truncate text-body-s text-muted">{project.tagline}</span>
             </span>
-            <span className="text-label text-muted">{typeLabel[post.project.type]}</span>
-          </a>
+            <span className="text-label text-muted">{TYPE_LABEL[project.type]}</span>
+          </Link>
         )}
 
-        <Reactions upvotes={post.upvotes} comments={post.comments} stamps={post.stamps} />
+        <div className="flex items-end justify-between gap-2">
+          <PostReactions postId={post.id} counts={post.counts} mine={post.mine} canReact={canReact} />
+          {viewerId === author.id && (
+            <form action={deletePost.bind(null, post.id)}>
+              <ConfirmButton
+                message="Delete this post?"
+                aria-label="Delete post"
+                title="Delete post"
+                className="grid size-9 place-items-center rounded-sm text-muted transition-colors duration-120 hover:bg-surface-2 hover:text-red"
+              >
+                <Trash2 className="size-4" />
+              </ConfirmButton>
+            </form>
+          )}
+        </div>
       </div>
     </article>
   );

@@ -1,5 +1,4 @@
-// A 5×5 mirrored pixel avatar seeded by the handle, used until people upload photos.
-// Mid-tone hues that stay visible on both light and dark surfaces.
+// A builder's photo, or a 5×5 mirrored pixel avatar seeded by their handle.
 const HUES = ["#3b5bff", "#12a150", "#e2622b", "#0e93b0", "#c8901a", "#d64545", "#7a8a3a"];
 
 function hash(s: string) {
@@ -8,7 +7,31 @@ function hash(s: string) {
   return h >>> 0;
 }
 
-export function Avatar({ seed, size = 40, label }: { seed: string; size?: number; label?: string }) {
+export function Avatar({
+  seed,
+  src,
+  size = 40,
+  label,
+}: {
+  seed: string;
+  src?: string | null;
+  size?: number;
+  label?: string;
+}) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- user photos from Slack or uploads
+      <img
+        src={src}
+        alt={label ?? ""}
+        width={size}
+        height={size}
+        loading="lazy"
+        className="shrink-0 rounded-sm bg-surface-2 object-cover"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
   const h = hash(seed);
   const color = HUES[h % HUES.length];
   const cells: [number, number][] = [];

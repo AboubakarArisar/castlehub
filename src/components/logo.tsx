@@ -1,23 +1,31 @@
-// The CastleHub mark: a tower whose middle battlement is raised like an upvote.
-export function Mark({ className = "size-7" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <path
-        fill="currentColor"
-        fillRule="evenodd"
-        d="M3 22V5h4.5v3H9V5.5L12 2l3 3.5V8h1.5V5H21v17H3Zm7.25 0v-4.25a1.75 1.75 0 0 1 3.5 0V22h-3.5Z"
-      />
-    </svg>
-  );
+import Image from "next/image";
+import appIcon from "../../public/brand/app-icon.png";
+import logoOnDark from "../../public/brand/logo-on-dark.png";
+import logoOnLight from "../../public/brand/logo-on-light.png";
+
+/** The CastleHub app icon (rounded square). Used in navigation. */
+export function Mark({ className = "size-8" }: { className?: string }) {
+  return <Image src={appIcon} alt="" className={`shrink-0 ${className}`} sizes="48px" priority />;
 }
 
+/** App icon + name, for headers and navigation. */
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 text-ink ${className}`}>
-      <Mark className="size-7 text-cobalt" />
+      <Mark className="size-8" />
       <span className="font-display text-[1.6rem] leading-none font-extrabold tracking-[-0.05em]">
-        castlehub
+        castle<span className="text-cobalt">hub</span>
       </span>
+    </span>
+  );
+}
+
+/** Full logo artwork. Swaps to the version that reads on the current theme. */
+export function Logo({ className = "h-10 w-auto" }: { className?: string }) {
+  return (
+    <span className="inline-flex">
+      <Image src={logoOnLight} alt="castlehub" className={`dark:hidden ${className}`} sizes="320px" />
+      <Image src={logoOnDark} alt="castlehub" className={`hidden dark:block ${className}`} sizes="320px" />
     </span>
   );
 }
