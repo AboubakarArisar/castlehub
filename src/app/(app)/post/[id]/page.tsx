@@ -11,7 +11,12 @@ export async function generateMetadata({ params }: PageProps<"/post/[id]">): Pro
   const post = await getPost((await params).id);
   if (!post) return {};
   const text = post.body.replace(/\s+/g, " ").slice(0, 140);
-  return { title: `${post.author.name} on castlehub`, description: text || undefined };
+  const title = `${post.author.name} on castlehub`;
+  return {
+    title,
+    description: text || undefined,
+    openGraph: { title, description: text || undefined, ...(post.imageUrl && { images: [post.imageUrl] }) },
+  };
 }
 
 export default async function PostPage({ params }: PageProps<"/post/[id]">) {

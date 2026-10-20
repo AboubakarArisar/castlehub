@@ -5,7 +5,9 @@ import { SlackButton } from "@/components/landing-hero";
 import { Pager, pageParam } from "@/components/pager";
 import { Post } from "@/components/post";
 import { PageHeader } from "@/components/shell";
-import { getFeed, getOwnProjects } from "@/lib/queries";
+import { WinnerCard } from "@/components/winner-card";
+import { getFeed, getLastWeekWinner, getOwnProjects } from "@/lib/queries";
+import { isoWeek, shiftWeek } from "@/lib/rules";
 import { asBuilder, getViewer } from "@/lib/session";
 
 export const metadata: Metadata = { title: "feed · castlehub" };
@@ -15,9 +17,10 @@ const PER_PAGE = 30;
 export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
   const page = pageParam((await searchParams).page);
   const viewer = await getViewer();
-  const [rows, projects] = await Promise.all([
+  const [rows, projects, winner] = await Promise.all([
     getFeed(viewer?.id, {}, PER_PAGE + 1, (page - 1) * PER_PAGE),
     viewer?.handle ? getOwnProjects(viewer.id) : [],
+    page === 1 ? getLastWeekWinner() : null,
   ]);
   const builder = asBuilder(viewer);
   const posts = rows.slice(0, PER_PAGE);
@@ -25,6 +28,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
   return (
     <>
       <PageHeader title={<>what&apos;s <span className="accent-serif">shipping</span> in the castle</>} />
+      {winner && <WinnerCard project={winner} week={shiftWeek(isoWeek(), -1)} label="last week's top launch" />}
 
       {builder ? (
         <Composer viewer={builder} projects={projects} />

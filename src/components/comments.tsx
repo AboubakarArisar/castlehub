@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
-import { deleteComment, type CommentTarget } from "@/actions/comment";
+import { deleteComment, updateComment, type CommentTarget } from "@/actions/comment";
 import { Avatar } from "@/components/avatar";
 import { CommentForm } from "@/components/comment-form";
 import { ConfirmButton } from "@/components/confirm-button";
+import { EditableText } from "@/components/editable-text";
 import type { CommentRow } from "@/lib/queries";
 import { RichText } from "@/lib/rich";
 import { timeAgo } from "@/lib/rules";
 
 type Viewer = { id: string; handle: string; image: string | null } | null;
 
-export function CommentItem({ comment, canDelete, compact = false }: { comment: CommentRow; canDelete: boolean; compact?: boolean }) {
+export function CommentItem({ comment, canDelete, canEdit = false, compact = false }: { comment: CommentRow; canDelete: boolean; canEdit?: boolean; compact?: boolean }) {
   const a = comment.author;
   return (
     <li className="group flex gap-2.5">
@@ -22,8 +23,15 @@ export function CommentItem({ comment, canDelete, compact = false }: { comment: 
           <p className="flex flex-wrap items-baseline gap-x-2">
             <Link href={`/${a.handle}`} className="text-body-s font-semibold hover:underline">{a.name}</Link>
             <time className="text-body-s text-muted" dateTime={comment.createdAt.toISOString()}>{timeAgo(comment.createdAt)}</time>
+            {comment.editedAt && <span className="text-body-s text-muted">· edited</span>}
           </p>
-          <RichText text={comment.body} className="mt-0.5 text-body" />
+          {canEdit ? (
+            <EditableText initial={comment.body} save={updateComment.bind(null, comment.id)} maxLength={1000}>
+              <RichText text={comment.body} className="mt-0.5 text-body" />
+            </EditableText>
+          ) : (
+            <RichText text={comment.body} className="mt-0.5 text-body" />
+          )}
         </div>
       </div>
       {canDelete && (
@@ -68,7 +76,7 @@ export function CommentThread({
       ) : (
         <ul className="space-y-3">
           {comments.map((c) => (
-            <CommentItem key={c.id} comment={c} canDelete={viewer?.id === c.authorId || viewer?.id === ownerId} />
+            <CommentItem key={c.id} comment={c} canEdit={viewer?.id === c.authorId} canDelete={viewer?.id === c.authorId || viewer?.id === ownerId} />
           ))}
         </ul>
       )}

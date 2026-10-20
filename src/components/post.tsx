@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { MessageSquare, Trash2 } from "lucide-react";
-import { deletePost } from "@/actions/post";
+import { deletePost, updatePost } from "@/actions/post";
 import { Avatar } from "@/components/avatar";
 import { CommentForm } from "@/components/comment-form";
 import { CommentItem } from "@/components/comments";
 import { ConfirmButton } from "@/components/confirm-button";
+import { EditableText } from "@/components/editable-text";
 import { ImageWindow } from "@/components/media";
 import { ProjectIcon } from "@/components/project-row";
 import { PostReactions } from "@/components/reactions";
@@ -39,6 +40,7 @@ export function Post({ post, viewer, full = false }: { post: FeedPost; viewer: P
           <Link href={href} className="text-body-s text-muted hover:underline">
             <time dateTime={post.createdAt.toISOString()}>{timeAgo(post.createdAt)}</time>
           </Link>
+          {post.editedAt && <span className="text-body-s text-muted" title={`edited ${post.editedAt.toISOString()}`}>· edited</span>}
           {author.headline && (
             <span className="text-label ml-auto hidden max-w-[40%] truncate text-muted sm:inline">
               {author.headline}
@@ -46,7 +48,13 @@ export function Post({ post, viewer, full = false }: { post: FeedPost; viewer: P
           )}
         </header>
 
-        {post.body && <RichText text={post.body} className="mt-2 text-body-l" />}
+        {viewer?.id === author.id ? (
+          <EditableText initial={post.body} save={updatePost.bind(null, post.id)} maxLength={2000}>
+            {post.body && <RichText text={post.body} className="mt-2 text-body-l" />}
+          </EditableText>
+        ) : (
+          post.body && <RichText text={post.body} className="mt-2 text-body-l" />
+        )}
 
         {post.imageUrl && (
           <div className="mt-3">
@@ -107,7 +115,7 @@ export function Post({ post, viewer, full = false }: { post: FeedPost; viewer: P
             {post.comments.length > 0 && (
               <ul className="space-y-2.5">
                 {post.comments.map((c) => (
-                  <CommentItem key={c.id} comment={c} compact canDelete={viewer?.id === c.authorId || viewer?.id === author.id} />
+                  <CommentItem key={c.id} comment={c} compact canEdit={viewer?.id === c.authorId} canDelete={viewer?.id === c.authorId || viewer?.id === author.id} />
                 ))}
               </ul>
             )}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Pencil } from "lucide-react";
+import { ArrowLeft, ExternalLink, Pencil, Trophy } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { CommentThread } from "@/components/comments";
 import { MediaEmbed } from "@/components/media";
@@ -9,15 +9,26 @@ import { Post } from "@/components/post";
 import { ProjectGallery } from "@/components/project-gallery";
 import { ProjectIcon } from "@/components/project-row";
 import { ProjectUpvote } from "@/components/reactions";
-import { getComments, getFeed, getProject } from "@/lib/queries";
+import { ShareToBuilds } from "@/components/share-to-builds";
+import { getComments, getFeed, getProject, getWeekWinner } from "@/lib/queries";
 import { RichText } from "@/lib/rich";
 import { TYPE_LABEL } from "@/lib/rules";
 import { asBuilder, getViewer } from "@/lib/session";
+import { buildsLink, SITE_URL } from "@/lib/site";
 
 export async function generateMetadata({ params }: PageProps<"/[handle]/[slug]">): Promise<Metadata> {
   const { handle, slug } = await params;
   const project = await getProject(handle, slug);
-  return project ? { title: `${project.name} · castlehub`, description: project.tagline } : {};
+  if (!project) return {};
+  // Link previews in Slack and elsewhere show the project's first screenshot (or icon).
+  const image = project.images[0]?.url ?? project.iconUrl;
+  const title = `${project.name} · castlehub`;
+  return {
+    title,
+    description: project.tagline,
+    openGraph: { title, description: project.tagline, ...(image && { images: [image] }) },
+    twitter: { card: image ? "summary_large_image" : "summary", title, description: project.tagline, ...(image && { images: [image] }) },
+  };
 }
 
 export default async function ProjectPage({ params }: PageProps<"/[handle]/[slug]">) {
@@ -30,6 +41,10 @@ export default async function ProjectPage({ params }: PageProps<"/[handle]/[slug
     getComments({ projectId: project.id }),
   ]);
   const isOwner = viewer?.id === project.ownerId;
+  const won = project.launchWeek ? (await getWeekWinner(project.launchWeek))?.id === project.id : false;
+  const shareText = isOwner
+    ? `🚀 I just launched *${project.name}* on CastleHub: ${project.tagline}`
+    : `👀 Check out *${project.name}* by @${project.owner.handle} on CastleHub: ${project.tagline}`;
 
   return (
     <article>
@@ -54,6 +69,17 @@ export default async function ProjectPage({ params }: PageProps<"/[handle]/[slug
               <Link href={`/${project.owner.handle}`} className="inline-flex items-center gap-2 text-body font-semibold hover:underline">
                 <Avatar seed={project.owner.handle ?? project.owner.id} src={project.owner.image} size={22} /> {project.owner.name}
               </Link>
+              {project.collaborators.length > 0 && (
+                <span className="text-body-s text-muted">
+                  with{" "}
+                  {project.collaborators.map(({ user }, i) => (
+                    <span key={user.id}>
+                      {i > 0 && ", "}
+                      <Link href={`/${user.handle}`} className="font-semibold text-ink hover:underline">@{user.handle}</Link>
+                    </span>
+                  ))}
+                </span>
+              )}
               <span className="text-label flex flex-wrap gap-x-2 text-muted">
                 <span>{TYPE_LABEL[project.type]}</span>
                 {project.launchWeek && (
@@ -68,6 +94,12 @@ export default async function ProjectPage({ params }: PageProps<"/[handle]/[slug
             </div>
           </div>
         </div>
+        {won && (
+          <p className="mt-4 inline-flex items-center gap-2 rounded-sm bg-amber px-2.5 py-1.5 text-amber-ink">
+            <Trophy className="size-4" />
+            <span className="text-label">top launch of week {Number(project.launchWeek!.slice(-2))}</span>
+          </p>
+        )}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <ProjectUpvote projectId={project.id} count={project._count.upvotes} upvoted={project.upvoted} canVote={Boolean(viewer?.handle)} large />
           {project.websiteUrl && (
@@ -80,6 +112,7 @@ export default async function ProjectPage({ params }: PageProps<"/[handle]/[slug
               visit <ExternalLink className="size-4" />
             </a>
           )}
+          {viewer && <ShareToBuilds message={shareText} url={`${SITE_URL}/${handle}/${slug}`} slackLink={buildsLink()} />}
         </div>
       </header>
 

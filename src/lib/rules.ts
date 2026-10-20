@@ -5,7 +5,7 @@ import { z } from "zod";
 // Top-level routes a handle must never shadow.
 export const RESERVED_HANDLES = new Set([
   "api", "post", "feed", "discover", "launchpad", "projects", "settings", "signin", "signout",
-  "onboarding", "builders", "admin", "suspended", "about", "help", "terms", "privacy", "new", "edit",
+  "onboarding", "builders", "admin", "suspended", "search", "notifications", "about", "help", "terms", "privacy", "new", "edit",
   "castlehub", "skycastle", "slack", "uploads", "_next", "static", "public",
 ]);
 
@@ -40,6 +40,13 @@ const csvList = (max: number, itemMax: number, label: string) =>
         .max(max, `Up to ${max} ${label}s`),
     );
 
+/** "@troy, raqib" → ["troy", "raqib"]: handles typed into the collaborators field. */
+export const collaboratorsField = z
+  .string()
+  .default("")
+  .transform((v) => [...new Set(v.split(/[\s,]+/).map((h) => h.replace(/^@/, "").trim().toLowerCase()).filter(Boolean))])
+  .pipe(z.array(z.string().max(30)).max(5, "Up to 5 collaborators"));
+
 // ── Forms ──────────────────────────────────────────────────
 
 export const profileSchema = z.object({
@@ -49,6 +56,7 @@ export const profileSchema = z.object({
   website: optionalUrl.transform((v) => v ?? null),
   skills: csvList(10, 24, "skill"),
   image: z.string().trim().optional().transform((v) => v || null),
+  openToCollab: z.boolean(),
 });
 
 export const PROJECT_TYPES = ["GAME", "WEBSITE", "AI_TOOL", "MUSIC", "ART", "VIDEO", "OTHER"] as const;
@@ -75,6 +83,7 @@ export const projectSchema = z.object({
   iconUrl: z.string().trim().optional().transform((v) => v || undefined),
   images: z.array(z.string().trim().min(1)).max(4, "Up to 4 images"),
   launch: z.boolean(),
+  collaborators: collaboratorsField,
 });
 
 export const postSchema = z
@@ -160,6 +169,13 @@ export function embedUrl(raw: string | null | undefined) {
     if (host === "vimeo.com" && /^\/\d+$/.test(u.pathname)) return `https://player.vimeo.com/video${u.pathname}`;
   } catch {}
   return null;
+}
+
+/** Lowercase @handles mentioned in a text (same pattern RichText links), at most 10. */
+export function mentionedHandles(text: string) {
+  const found = new Set<string>();
+  for (const m of text.matchAll(/(?<![\w@/])@([a-z0-9][a-z0-9-]{1,28}[a-z0-9])(?![\w-])/gi)) found.add(m[1].toLowerCase());
+  return [...found].slice(0, 10);
 }
 
 /** Short relative time: "now", "5m", "3h", "2d", then a date. */

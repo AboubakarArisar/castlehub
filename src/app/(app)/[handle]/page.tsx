@@ -11,7 +11,9 @@ import { asBuilder, getViewer } from "@/lib/session";
 export async function generateMetadata({ params }: PageProps<"/[handle]">): Promise<Metadata> {
   const { handle } = await params;
   const builder = await getBuilder(handle.toLowerCase());
-  return builder ? { title: `${builder.name} (@${builder.handle}) · castlehub`, description: builder.headline ?? undefined } : {};
+  if (!builder) return {};
+  const title = `${builder.name} (@${builder.handle}) · castlehub`;
+  return { title, description: builder.headline ?? undefined, openGraph: { title, description: builder.headline ?? undefined, ...(builder.image && { images: [builder.image] }) } };
 }
 
 export default async function ProfilePage({ params, searchParams }: PageProps<"/[handle]">) {
@@ -23,7 +25,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   const isMe = viewer?.id === builder.id;
 
   const [projects, posts] = await Promise.all([
-    tab === "projects" ? getProjects({ viewerId: viewer?.id, ownerId: builder.id, take: 50 }) : [],
+    tab === "projects" ? getProjects({ viewerId: viewer?.id, memberId: builder.id, take: 50 }) : [],
     tab === "posts" ? getFeed(viewer?.id, { authorId: builder.id }) : [],
   ]);
 
@@ -39,7 +41,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
           )}
         </div>
         <h1 className="text-display-l mt-4">{builder.name}</h1>
-        <p className="text-body text-muted">@{builder.handle}</p>
+        <p className="flex flex-wrap items-center gap-2 text-body text-muted">
+          @{builder.handle}
+          {builder.openToCollab && (
+            <Link href="/search?collab=1" className="text-label rounded-sm border border-green px-1.5 py-0.5 text-green hover:bg-green/10">open to collab</Link>
+          )}
+        </p>
         {builder.headline && <p className="mt-2 text-body-l">{builder.headline}</p>}
         {builder.bio && <p className="mt-3 max-w-[60ch] text-body whitespace-pre-wrap text-muted">{builder.bio}</p>}
         <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-body-s text-muted">

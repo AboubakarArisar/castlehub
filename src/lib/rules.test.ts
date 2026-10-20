@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { embedUrl, handleSchema, isoWeek, postSchema, projectSchema, shiftWeek, slugify, sniffImage, weekRange } from "./rules";
+import { collaboratorsField, embedUrl, handleSchema, mentionedHandles, isoWeek, postSchema, projectSchema, shiftWeek, slugify, sniffImage, weekRange } from "./rules";
 
 test("isoWeek follows ISO-8601 (Thursday rule, year edges)", () => {
   assert.equal(isoWeek(new Date("2026-10-20T12:00:00Z")), "2026-W43");
@@ -54,4 +54,14 @@ test("embedUrl allowlists YouTube and Vimeo", () => {
   assert.equal(embedUrl("https://www.youtube.com/watch?v=../../x?autoplay=1"), null);
   assert.equal(embedUrl("https://vimeo.com/12345"), "https://player.vimeo.com/video/12345");
   assert.equal(embedUrl("https://evil.example/embed"), null);
+});
+
+test("mentionedHandles finds unique handles, not emails or paths", () => {
+  assert.deepEqual(mentionedHandles("hey @Troy and @raqib, ping @troy. mail a@b.co or /x/@nope"), ["troy", "raqib"]);
+  assert.deepEqual(mentionedHandles("no mentions here"), []);
+});
+
+test("collaboratorsField cleans handles", () => {
+  assert.deepEqual(collaboratorsField.parse("@Troy, raqib  @troy"), ["troy", "raqib"]);
+  assert.equal(collaboratorsField.safeParse("a,b,c,d,e,f").success, false);
 });

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import type { FormState } from "@/actions/profile";
 import { ImageUpload } from "@/components/upload-field";
 import { PROJECT_TYPES, TYPE_LABEL } from "@/lib/rules";
+import { submitKeepingValues } from "@/lib/submit-keeping-values";
 
 export type ProjectDefaults = {
   name: string;
@@ -16,10 +17,11 @@ export type ProjectDefaults = {
   iconUrl?: string;
   images: string[];
   launch: boolean;
+  collaborators: string;
 };
 
 const EMPTY: ProjectDefaults = {
-  name: "", tagline: "", description: "", type: "", tags: "", websiteUrl: "", mediaUrl: "", images: [], launch: false,
+  name: "", tagline: "", description: "", type: "", tags: "", websiteUrl: "", mediaUrl: "", images: [], launch: false, collaborators: "",
 };
 
 const input =
@@ -40,7 +42,7 @@ export function ProjectForm({
   const e = state.errors ?? {};
 
   return (
-    <form action={formAction} className="space-y-6 px-4 py-6 md:px-6" noValidate>
+    <form onSubmit={submitKeepingValues(formAction)} className="space-y-6 px-4 py-6 md:px-6" noValidate>
       {e.form && <p className="rounded-sm border border-red px-3 py-2 text-body text-red" role="alert">{e.form}</p>}
 
       <Field label="Name" error={e.name} id="name">
@@ -84,6 +86,10 @@ export function ProjectForm({
 
       <Field label="Tags" hint="Comma separated, up to 5." error={e.tags} id="tags">
         <input id="tags" name="tags" defaultValue={defaults.tags} aria-invalid={Boolean(e.tags)} className={input} placeholder="pixel art, platformer" />
+      </Field>
+
+      <Field label="Built with" hint="@handles of up to 5 builders who made this with you. They get credited and notified." error={e.collaborators} id="collaborators">
+        <input id="collaborators" name="collaborators" defaultValue={defaults.collaborators} aria-invalid={Boolean(e.collaborators)} className={input} placeholder="@troy, @raqib" autoCapitalize="none" spellCheck={false} />
       </Field>
 
       <label className="flex cursor-pointer items-start gap-3 border border-line-strong p-4 has-checked:border-amber has-checked:bg-amber/10">

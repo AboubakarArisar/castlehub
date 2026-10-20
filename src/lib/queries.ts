@@ -1,6 +1,8 @@
 import "server-only";
+import { cache } from "react";
 import type { Prisma, ProjectType, ReactionKind } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { isoWeek, shiftWeek } from "@/lib/rules";
 
 const authorSelect = { id: true, name: true, handle: true, image: true, headline: true } as const;
 
@@ -84,6 +86,8 @@ export async function getProjects(opts: {
   sort?: "new" | "top";
   launchWeek?: string;
   ownerId?: string;
+  /** Projects this person owns or collaborated on. */
+  memberId?: string;
   take?: number;
   skip?: number;
 }) {
@@ -91,6 +95,7 @@ export async function getProjects(opts: {
     ...(opts.type && { type: opts.type }),
     ...(opts.launchWeek && { launchWeek: opts.launchWeek }),
     ...(opts.ownerId && { ownerId: opts.ownerId }),
+    ...(opts.memberId && { OR: [{ ownerId: opts.memberId }, { collaborators: { some: { userId: opts.memberId } } }] }),
     owner: { handle: { not: null } },
   };
   const orderBy: Prisma.ProjectOrderByWithRelationInput[] =
@@ -107,6 +112,7 @@ export async function getProject(handle: string, slug: string, viewerId?: string
     include: {
       owner: { select: authorSelect },
       images: { orderBy: { position: "asc" } },
+      collaborators: { select: { user: { select: authorSelect } }, orderBy: { createdAt: "asc" } },
       _count: { select: { upvotes: true } },
     },
   });
@@ -120,7 +126,7 @@ export async function getProject(handle: string, slug: string, viewerId?: string
 export function getBuilder(handle: string) {
   return db.user.findUnique({
     where: { handle },
-    select: { ...authorSelect, bio: true, website: true, skills: true, createdAt: true, slackTeamId: true },
+    select: { ...authorSelect, bio: true, website: true, skills: true, createdAt: true, slackTeamId: true, openToCollab: true },
   });
 }
 
@@ -136,3 +142,71 @@ export function getNewBuilders(take = 3) {
 export function getOwnProjects(ownerId: string) {
   return db.project.findMany({ where: { ownerId }, select: { id: true, name: true }, orderBy: { createdAt: "desc" } });
 }
+
+// ── Launchpad winner ───────────────────────────────────────
+
+/** Top project of a finished Launchpad week (needs at least one upvote). Ties go to the earlier launch. */
+export const getWeekWinner = cache(async (week: string) => {
+  if (week >= isoWeek()) return null;
+  const [top] = await db.project.findMany({
+    where: { launchWeek: week, owner: { handle: { not: null } }, upvotes: { some: {} } },
+    select: projectCard,
+    orderBy: [{ upvotes: { _count: "desc" } }, { createdAt: "asc" }],
+    take: 1,
+  });
+  return top ?? null;
+});
+
+export const getLastWeekWinner = () => getWeekWinner(shiftWeek(isoWeek(), -1));
+
+// ── Search ─────────────────────────────────────────────────
+
+export async function search(q: string, opts: { collabOnly?: boolean; viewerId?: string }) {
+  const text = { contains: q, mode: "insensitive" as const };
+  const word = q.toLowerCase();
+  const [projects, builders] = await Promise.all([
+    q
+      ? db.project.findMany({
+          where: { owner: { handle: { not: null } }, OR: [{ name: text }, { tagline: text }, { tags: { has: word } }] },
+          select: projectCard,
+          orderBy: [{ upvotes: { _count: "desc" } }, { createdAt: "desc" }],
+          take: 30,
+        })
+      : [],
+    q || opts.collabOnly
+      ? db.user.findMany({
+          where: {
+            handle: { not: null },
+            suspendedAt: null,
+            ...(opts.collabOnly && { openToCollab: true }),
+            ...(q && { OR: [{ name: text }, { handle: text }, { headline: text }, { skills: { has: word } }] }),
+          },
+          select: { ...authorSelect, skills: true, openToCollab: true },
+          orderBy: { createdAt: "desc" },
+          take: 30,
+        })
+      : [],
+  ]);
+  return { projects: await withUpvoted(projects, opts.viewerId), builders };
+}
+
+// ── Notifications ──────────────────────────────────────────
+
+export function getUnreadCount(userId: string) {
+  return db.notification.count({ where: { userId, readAt: null } });
+}
+
+export function getNotifications(userId: string) {
+  return db.notification.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 60,
+    include: {
+      actor: { select: authorSelect },
+      post: { select: { id: true, body: true } },
+      project: { select: { name: true, slug: true, owner: { select: { handle: true } } } },
+      comment: { select: { body: true } },
+    },
+  });
+}
+export type NotificationRow = Awaited<ReturnType<typeof getNotifications>>[number];

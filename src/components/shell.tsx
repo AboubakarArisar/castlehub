@@ -99,7 +99,7 @@ async function RightColumn({ viewerId }: { viewerId?: string }) {
           <p className="mt-2 font-display text-[18px] leading-6 font-extrabold tracking-[-0.03em]">
             share your launches to <span className="accent-serif">#builds</span>
           </p>
-          <p className="mt-1.5 text-body-s text-muted">Coming soon: post a launch to the SkyCastle Slack with one click.</p>
+          <p className="mt-1.5 text-body-s text-muted">Open any project and hit &ldquo;share to #builds&rdquo;: the message is copied and Slack opens, ready to paste.</p>
         </section>
       </div>
     </aside>

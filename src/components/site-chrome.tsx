@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { Plus, Settings, ShieldCheck } from "lucide-react";
+import { Plus, Search, Settings, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { SlackButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
 import { NavLink } from "@/components/nav-link";
+import { NotificationBell } from "@/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getUnreadCount } from "@/lib/queries";
 import type { Viewer } from "@/lib/session";
 
 const NAV = [
@@ -14,7 +16,8 @@ const NAV = [
 ];
 
 /** One header for the whole site: landing page and app alike. */
-export function SiteHeader({ viewer }: { viewer: Viewer | null }) {
+export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
+  const unread = viewer ? await getUnreadCount(viewer.id) : 0;
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 md:px-6">
@@ -35,7 +38,16 @@ export function SiteHeader({ viewer }: { viewer: Viewer | null }) {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          <Link
+            href="/search"
+            aria-label="Search"
+            title="Search"
+            className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-line-strong hover:text-ink"
+          >
+            <Search className="size-4" />
+          </Link>
           <ThemeToggle />
+          {viewer && <NotificationBell initial={unread} />}
           {viewer ? (
             <>
               <Link

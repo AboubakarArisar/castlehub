@@ -39,6 +39,7 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
     website: formData.get("website") ?? "",
     skills: formData.get("skills") ?? "",
     image: formData.get("image") ?? undefined,
+    openToCollab: formData.get("openToCollab") === "on",
   });
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
 

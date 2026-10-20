@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   const viewer = await requireBuilder();
   const me = await db.user.findUniqueOrThrow({
     where: { id: viewer.id },
-    select: { name: true, headline: true, bio: true, website: true, skills: true, image: true, email: true },
+    select: { name: true, headline: true, bio: true, website: true, skills: true, image: true, email: true, openToCollab: true },
   });
 
   return (
@@ -24,6 +24,7 @@ export default async function SettingsPage() {
           bio: me.bio ?? "",
           website: me.website ?? "",
           skills: me.skills.join(", "),
+          openToCollab: me.openToCollab,
           image: me.image,
         }}
       />

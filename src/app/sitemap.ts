@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.AUTH_URL ?? "https://castlehub.aboubakarisar.tech";
+  const base = SITE_URL;
   const [projects, builders] = await Promise.all([
     db.project.findMany({ select: { slug: true, updatedAt: true, owner: { select: { handle: true } } }, orderBy: { updatedAt: "desc" }, take: 5000 }),
     db.user.findMany({ where: { handle: { not: null }, suspendedAt: null }, select: { handle: true, updatedAt: true }, take: 5000 }),

@@ -6,6 +6,7 @@ import {
   Geist_Mono,
   Instrument_Serif,
 } from "next/font/google";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -27,7 +28,7 @@ const instrumentSerif = Instrument_Serif({
 const description = "Where SkyCastle builders post work in progress, launch projects and find people to build with.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.AUTH_URL ?? "https://castlehub.aboubakarisar.tech"),
+  metadataBase: new URL(SITE_URL),
   title: "castlehub",
   description,
   // Link previews in Slack, X, Discord and iMessage.

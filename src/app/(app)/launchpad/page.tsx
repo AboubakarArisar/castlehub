@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/shell";
 import { ProjectRow } from "@/components/project-row";
-import { getProjects } from "@/lib/queries";
+import { WinnerCard } from "@/components/winner-card";
+import { getProjects, getWeekWinner } from "@/lib/queries";
 import { isoWeek, shiftWeek, weekRange } from "@/lib/rules";
 import { getViewer } from "@/lib/session";
 
@@ -17,7 +18,7 @@ export default async function LaunchpadPage({ searchParams }: PageProps<"/launch
   const week = typeof sp.week === "string" && weekRange(sp.week) ? sp.week : current;
   const range = weekRange(week)!;
   const viewer = await getViewer();
-  const projects = await getProjects({ viewerId: viewer?.id, launchWeek: week, take: 100 });
+  const [projects, winner] = await Promise.all([getProjects({ viewerId: viewer?.id, launchWeek: week, take: 100 }), getWeekWinner(week)]);
   const next = shiftWeek(week, 1);
 
   return (
@@ -47,6 +48,7 @@ export default async function LaunchpadPage({ searchParams }: PageProps<"/launch
           )}
         </div>
       </PageHeader>
+      {winner && <WinnerCard project={winner} week={week} label="winner" />}
 
       {projects.length === 0 ? (
         <div className="px-6 py-16 text-center">

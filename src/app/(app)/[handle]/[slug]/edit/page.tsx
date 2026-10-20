@@ -34,6 +34,7 @@ export default async function EditProjectPage({ params }: PageProps<"/[handle]/[
           iconUrl: project.iconUrl ?? undefined,
           images: project.images.map((i) => i.url),
           launch: Boolean(project.launchWeek),
+          collaborators: project.collaborators.map((c) => `@${c.user.handle}`).join(", "),
         }}
       />
       <form action={deleteProject.bind(null, project.id)} className="border-t border-line px-4 py-6 md:px-6">

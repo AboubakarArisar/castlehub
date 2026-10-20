@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { claimHandle, updateProfile, type FormState } from "@/actions/profile";
 import { ImageUpload } from "@/components/upload-field";
+import { submitKeepingValues } from "@/lib/submit-keeping-values";
 
 const input =
   "mt-1.5 w-full rounded-sm border border-line-strong bg-surface px-3 py-2.5 text-body transition-colors duration-120 placeholder:text-muted/70 hover:border-ink/40 focus:border-cobalt focus:outline-none aria-[invalid=true]:border-red";
@@ -15,7 +16,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(claimHandle, {});
   const e = state.errors ?? {};
   return (
-    <form action={action} className="mt-8 space-y-5 text-left">
+    <form onSubmit={submitKeepingValues(action)} className="mt-8 space-y-5 text-left">
       <div>
         <label htmlFor="handle" className="text-body font-medium">Handle</label>
         <div className="mt-1.5 flex items-center rounded-sm border border-line-strong bg-surface focus-within:border-cobalt aria-[invalid=true]:border-red" aria-invalid={Boolean(e.handle)}>
@@ -40,12 +41,12 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
 export function ProfileForm({
   defaults,
 }: {
-  defaults: { name: string; headline: string; bio: string; website: string; skills: string; image: string | null };
+  defaults: { name: string; headline: string; bio: string; website: string; skills: string; image: string | null; openToCollab: boolean };
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(updateProfile, {});
   const e = state.errors ?? {};
   return (
-    <form action={action} className="space-y-6 px-4 py-6 md:px-6">
+    <form onSubmit={submitKeepingValues(action)} className="space-y-6 px-4 py-6 md:px-6">
       <ImageUpload name="image" label="Photo" hint="Defaults to your Slack photo." initial={defaults.image ? [defaults.image] : []} error={e.image} />
       <div>
         <label htmlFor="name" className="text-body font-medium">Name</label>
@@ -73,6 +74,13 @@ export function ProfileForm({
         <input id="skills" name="skills" defaultValue={defaults.skills} placeholder="typescript, godot, blender" aria-invalid={Boolean(e.skills)} className={input} />
         <Err msg={e.skills} />
       </div>
+      <label className="flex cursor-pointer items-start gap-3 border border-line-strong p-4 has-checked:border-green has-checked:bg-green/10">
+        <input type="checkbox" name="openToCollab" defaultChecked={defaults.openToCollab} className="mt-1 size-4 accent-[var(--green)]" />
+        <span>
+          <span className="block text-body font-semibold">Open to collab</span>
+          <span className="block text-body-s text-muted">Shows a badge on your profile and lists you when builders search for collaborators.</span>
+        </span>
+      </label>
       <div className="flex items-center gap-3 border-t border-line pt-6">
         <button type="submit" disabled={pending} className="h-11 rounded-sm bg-cobalt px-6 text-body font-semibold text-on-cobalt disabled:opacity-50">
           {pending ? "saving…" : "save profile"}

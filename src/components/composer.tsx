@@ -5,6 +5,7 @@ import { createPost } from "@/actions/post";
 import type { FormState } from "@/actions/profile";
 import { Avatar } from "@/components/avatar";
 import { ImageUpload } from "@/components/upload-field";
+import { submitKeepingValues } from "@/lib/submit-keeping-values";
 
 export function Composer({
   viewer,
@@ -35,7 +36,7 @@ function ComposerForm({
   }, {});
 
   return (
-    <form action={action} className="border-b border-line bg-surface px-4 py-4 md:px-6">
+    <form onSubmit={submitKeepingValues(action)} className="border-b border-line bg-surface px-4 py-4 md:px-6">
       <div className="flex gap-3">
         <Avatar seed={viewer.handle} src={viewer.image} label="Your avatar" />
         <div className="min-w-0 flex-1">
