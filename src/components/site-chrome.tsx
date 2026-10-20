@@ -17,7 +17,7 @@ const NAV = [
 export function SiteHeader({ viewer }: { viewer: Viewer | null }) {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-[1080px] items-center gap-6 px-4 md:px-6">
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 md:px-6">
         <Link href="/" aria-label="castlehub home" className="shrink-0">
           <Wordmark className="[&>span:last-child]:text-[1.4rem]" />
         </Link>
@@ -72,7 +72,7 @@ export function SiteHeader({ viewer }: { viewer: Viewer | null }) {
 export function SiteFooter() {
   return (
     <footer className="mt-20 border-t border-line">
-      <div className="mx-auto grid max-w-[1080px] gap-8 px-4 py-10 md:grid-cols-[1fr_auto] md:items-end md:px-6">
+      <div className="mx-auto grid max-w-[1200px] gap-8 px-4 py-10 md:grid-cols-[1fr_auto] md:items-end md:px-6">
         <div>
           <Logo className="h-10 w-auto md:h-12" />
           <p className="mt-3 max-w-[40ch] text-body-s text-muted">
@@ -89,7 +89,7 @@ export function SiteFooter() {
         </nav>
       </div>
       <div className="border-t border-line">
-        <p className="text-label mx-auto max-w-[1080px] px-4 py-4 text-muted md:px-6">castlehub · キャッスルハブ · made for skycastle builders</p>
+        <p className="text-label mx-auto max-w-[1200px] px-4 py-4 text-muted md:px-6">castlehub · キャッスルハブ · made for skycastle builders</p>
       </div>
     </footer>
   );

@@ -40,7 +40,7 @@ export function Post({ post, viewer, full = false }: { post: FeedPost; viewer: P
             <time dateTime={post.createdAt.toISOString()}>{timeAgo(post.createdAt)}</time>
           </Link>
           {author.headline && (
-            <span className="text-label ml-auto hidden max-w-[40%] truncate rounded-sm border border-line px-1.5 py-0.5 text-muted sm:inline">
+            <span className="text-label ml-auto hidden max-w-[40%] truncate text-muted sm:inline">
               {author.headline}
             </span>
           )}
@@ -71,13 +71,13 @@ export function Post({ post, viewer, full = false }: { post: FeedPost; viewer: P
           </Link>
         )}
 
-        <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
           <PostReactions postId={post.id} counts={post.counts} mine={post.mine} canReact={Boolean(viewer)} />
           <div className="flex items-center">
             <Link
               href={full ? "#comments" : href}
               aria-label={`${commentCount} ${commentCount === 1 ? "comment" : "comments"}`}
-              className="inline-flex h-9 items-center gap-1.5 rounded-sm px-2 text-muted transition-colors duration-120 hover:bg-surface-2 hover:text-ink"
+              className="inline-flex h-8 items-center gap-1.5 rounded-sm px-2 text-muted transition-colors duration-120 hover:bg-surface-2 hover:text-ink"
             >
               <MessageSquare className="size-[18px]" />
               <span className="text-count">{commentCount}</span>
@@ -88,7 +88,7 @@ export function Post({ post, viewer, full = false }: { post: FeedPost; viewer: P
                   message="Delete this post and its comments?"
                   aria-label="Delete post"
                   title="Delete post"
-                  className="grid size-9 place-items-center rounded-sm text-muted transition-colors duration-120 hover:bg-surface-2 hover:text-red"
+                  className="grid size-8 place-items-center rounded-sm text-muted transition-colors duration-120 hover:bg-surface-2 hover:text-red"
                 >
                   <Trash2 className="size-4" />
                 </ConfirmButton>

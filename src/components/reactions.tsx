@@ -44,7 +44,7 @@ export function PostReactions({
 
   if (!canReact) {
     return (
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-body-s text-muted">
+      <div className="flex flex-wrap items-center gap-2 text-body-s text-muted">
         <span className="text-count rounded-sm border border-line px-2 py-1">▲ {counts.UPVOTE}</span>
         <Link href="/signin" className="text-cobalt hover:underline">
           sign in to react
@@ -55,13 +55,13 @@ export function PostReactions({
 
   const up = state.mine.includes("UPVOTE");
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-1">
+    <div className="flex flex-wrap items-center gap-1.5">
       <button
         type="button"
         onClick={() => react("UPVOTE")}
         aria-pressed={up}
         aria-label={`${up ? "Remove upvote" : "Upvote"}, ${state.counts.UPVOTE} ${state.counts.UPVOTE === 1 ? "upvote" : "upvotes"}`}
-        className={`mr-1 inline-flex h-9 items-center gap-1.5 rounded-sm border px-2.5 transition-colors duration-120 sm:mr-2 ${
+        className={`mr-1 inline-flex h-8 items-center gap-1.5 rounded-sm border px-2.5 transition-colors duration-120 sm:mr-2 ${
           up ? "border-amber bg-amber text-amber-ink" : "border-line-strong text-ink hover:border-ink"
         }`}
       >
@@ -80,7 +80,7 @@ export function PostReactions({
             type="button"
             aria-pressed={on}
             onClick={() => react(s.kind)}
-            className={`inline-flex h-7 items-center gap-1 rounded-sm border px-1.5 font-mono text-[10px] transition-colors duration-120 sm:gap-1.5 sm:px-2 sm:text-[11px] sm:tracking-[0.04em] ${
+            className={`inline-flex h-8 items-center gap-1 rounded-sm border px-2 font-mono text-[10px] transition-colors duration-120 sm:gap-1.5 sm:px-2 sm:text-[11px] sm:tracking-[0.04em] ${
               on ? "border-cobalt bg-cobalt text-on-cobalt" : "border-line text-muted hover:border-line-strong hover:text-ink"
             }`}
           >

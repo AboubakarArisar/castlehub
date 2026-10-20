@@ -64,3 +64,6 @@ desktop.ini
 .cache
 
 /src/generated/prisma
+
+# Launch trailer (separate Remotion project, renders and assets)
+/trailer

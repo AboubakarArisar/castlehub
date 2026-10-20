@@ -13,7 +13,7 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
         className="pointer-events-none absolute inset-x-0 top-0 h-[560px] [background-image:radial-gradient(var(--line-strong)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(to_bottom,black_40%,transparent)]"
       />
 
-      <div className="relative mx-auto max-w-[1080px] px-4 pt-12 text-center md:px-6 md:pt-20">
+      <div className="relative mx-auto max-w-[1200px] px-4 pt-12 text-center md:px-6 md:pt-20">
         <Link
           href="/discover"
           className="inline-flex items-center gap-2 rounded-sm border border-line bg-surface px-3 py-1.5 transition-colors duration-120 hover:border-line-strong"
@@ -54,13 +54,13 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
         <p className="text-label mt-4 text-muted">uses your skycastle slack account</p>
       </div>
 
-      <figure className="relative mx-auto mt-14 max-w-[1080px] md:mt-20 md:px-6">
+      <figure className="relative mx-auto mt-14 max-w-[1200px] md:mt-20 md:px-6">
         <Image
           src={preview}
           alt="Concept illustration of CastleHub: a feed with a playable pixel game post, this week's launches and builders to meet, floating above the castle."
           priority
           placeholder="blur"
-          sizes="(min-width: 1080px) 1032px, 100vw"
+          sizes="(min-width: 1200px) 1152px, 100vw"
           className="h-auto w-full md:border md:border-line-strong md:shadow-[0_30px_80px_-30px_rgb(0_0_0/0.45)]"
         />
         <figcaption className="text-label mt-2 px-4 text-muted md:px-0">concept illustration · the live app may differ</figcaption>

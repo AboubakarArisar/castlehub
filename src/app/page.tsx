@@ -59,7 +59,7 @@ export default async function Landing() {
       <main>
         <LandingHero signedIn={signedIn} />
 
-        <section id="how" className="mx-auto max-w-[1080px] scroll-mt-6 px-4 pt-24 md:px-6 md:pt-32">
+        <section id="how" className="mx-auto max-w-[1200px] scroll-mt-6 px-4 pt-24 md:px-6 md:pt-32">
           <h2 className="text-display-l max-w-[18ch]">
             a place for the <span className="accent-serif">whole</span> build, not just the launch
           </h2>
@@ -74,7 +74,7 @@ export default async function Landing() {
           </ol>
         </section>
 
-        <section className="mx-auto max-w-[1080px] px-4 pt-20 md:px-6 md:pt-28" aria-labelledby="types-h">
+        <section className="mx-auto max-w-[1200px] px-4 pt-20 md:px-6 md:pt-28" aria-labelledby="types-h">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="types-h" className="text-display-l">made in the castle</h2>
             <p className="text-label text-muted">six kinds of project, one feed</p>
@@ -95,7 +95,7 @@ export default async function Landing() {
           </ul>
         </section>
 
-        <section className="mx-auto max-w-[1080px] px-4 pt-20 md:px-6 md:pt-28">
+        <section className="mx-auto max-w-[1200px] px-4 pt-20 md:px-6 md:pt-28">
           <div className="grid gap-6 border border-line-strong p-6 md:grid-cols-[1fr_auto] md:items-center md:p-10">
             <div>
               <p className="text-label text-muted">slack</p>
@@ -109,12 +109,12 @@ export default async function Landing() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1080px] pt-20 pb-24 text-center md:px-6 md:pt-28 md:pb-32">
+        <section className="mx-auto max-w-[1200px] pt-20 pb-24 text-center md:px-6 md:pt-28 md:pb-32">
           <Image
             src={castleSky}
             alt="Illustration: a builder and a black cat on a stone ledge, looking at a castle on floating islands above the clouds."
             placeholder="blur"
-            sizes="(min-width: 1080px) 1032px, 100vw"
+            sizes="(min-width: 1200px) 1152px, 100vw"
             className="h-auto w-full md:border md:border-line-strong"
           />
           <div className="px-4 pt-12 md:px-0 md:pt-16">

@@ -8,7 +8,7 @@ export default async function NotFound() {
   return (
     <div className="flex min-h-dvh flex-col">
       <SiteHeader viewer={viewer} />
-      <main className="mx-auto flex w-full max-w-[1080px] flex-1 flex-col items-center justify-center px-4 py-24 text-center">
+      <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col items-center justify-center px-4 py-24 text-center">
         <Mark className="size-16" />
         <p className="text-label mt-6 text-muted">404 · not in the castle</p>
         <h1 className="text-display-l mt-3">

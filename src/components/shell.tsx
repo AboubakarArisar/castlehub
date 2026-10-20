@@ -15,7 +15,7 @@ export async function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <SiteHeader viewer={viewer} />
-      <div className="mx-auto grid w-full max-w-[1080px] flex-1 gap-8 px-0 pt-0 md:px-6 md:pt-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="mx-auto grid w-full max-w-[1200px] flex-1 gap-8 px-0 pt-0 md:px-6 md:pt-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
         <main className="min-w-0 self-start border-line bg-paper md:border">{children}</main>
         <RightColumn viewerId={viewer?.id} />
       </div>

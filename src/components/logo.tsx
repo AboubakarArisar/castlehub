@@ -13,7 +13,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 text-ink ${className}`}>
       <Mark className="size-8" />
-      <span className="font-display text-[1.6rem] leading-none font-extrabold tracking-[-0.05em]">
+      <span className="font-display text-[1.6rem] leading-none font-extrabold translate-y-[0.1em] tracking-[-0.05em]">
         castle<span className="text-cobalt">hub</span>
       </span>
     </span>
