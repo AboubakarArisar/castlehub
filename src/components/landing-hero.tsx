@@ -75,11 +75,11 @@ export function SlackButton({ size = "lg" }: { size?: "lg" | "sm" }) {
   return (
     <Link
       href="/signin"
-      className={`inline-flex items-center rounded-sm bg-ink font-semibold text-paper shadow-[0_2px_0_var(--cobalt)] transition-transform duration-120 hover:-translate-y-px active:translate-y-px active:shadow-none ${
+      className={`inline-flex items-center whitespace-nowrap rounded-sm bg-ink font-semibold text-paper shadow-[0_2px_0_var(--cobalt)] transition-transform duration-120 hover:-translate-y-px active:translate-y-px active:shadow-none ${
         big ? "h-12 gap-3 px-6 text-body-l" : "h-9 gap-2 px-3.5 text-body"
       }`}
     >
-      <SlackLogo className={big ? "size-5" : "size-4"} /> sign in with slack
+      <SlackLogo className={big ? "size-5" : "size-4"} /> sign in<span className={big ? "" : "hidden sm:inline"}>&nbsp;with slack</span>
     </Link>
   );
 }

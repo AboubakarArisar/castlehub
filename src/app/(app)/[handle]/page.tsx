@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Link2 } from "lucide-react";
+import { CalendarDays, Link2, MapPin } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { Post } from "@/components/post";
 import { ProjectRow } from "@/components/project-row";
 import { StreakSection } from "@/components/streaks";
+import { placeFor } from "@/lib/places";
 import { getBuilder, getFeed, getProjects } from "@/lib/queries";
 import { asBuilder, getViewer } from "@/lib/session";
 
@@ -24,6 +25,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
   if (!builder) notFound();
   const viewer = await getViewer();
   const isMe = viewer?.id === builder.id;
+  // Only shown when the builder chose to be on the World Map.
+  const place = builder.onWorldMap && !builder.suspendedAt ? placeFor(builder.countryCode, builder.cityId) : null;
 
   const [projects, posts] = await Promise.all([
     tab === "projects" ? getProjects({ viewerId: viewer?.id, memberId: builder.id, take: 50 }) : [],
@@ -58,6 +61,11 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             <a href={builder.website} target="_blank" rel="noopener noreferrer nofollow me" className="inline-flex items-center gap-1.5 text-cobalt hover:underline">
               <Link2 className="size-4" /> {builder.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
             </a>
+          )}
+          {place && (
+            <Link href={`/world?place=${place.key}`} className="inline-flex items-center gap-1.5 text-amber hover:underline">
+              <MapPin className="size-4" /> building from {place.label}
+            </Link>
           )}
           {builder.slackTeamId && <span className="text-label self-center rounded-sm bg-surface-2 px-1.5 py-0.5">skycastle slack</span>}
         </p>

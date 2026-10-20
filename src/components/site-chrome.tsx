@@ -13,6 +13,7 @@ const NAV = [
   { href: "/feed", label: "feed" },
   { href: "/discover", label: "discover" },
   { href: "/launchpad", label: "launchpad" },
+  { href: "/world", label: "world" },
 ];
 
 /** One header for the whole site: landing page and app alike. */

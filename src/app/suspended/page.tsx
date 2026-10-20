@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
+import { removeWorldLocation } from "@/actions/world";
 import { getViewer } from "@/lib/session";
 
 export const metadata: Metadata = { title: "account suspended · castlehub", robots: { index: false } };
@@ -22,6 +23,12 @@ export default async function SuspendedPage() {
         <Link href="/feed" className="mt-6 inline-flex h-10 items-center rounded-sm border border-line-strong px-4 text-body font-semibold hover:border-ink">
           back to the feed
         </Link>
+        {viewer && (
+          <form action={removeWorldLocation} className="mt-8 border-t border-line pt-6">
+            <p className="text-body-s text-muted">Suspended accounts are hidden from the World Map. You can still delete your saved location.</p>
+            <button type="submit" className="mt-2 text-body-s font-semibold text-red hover:underline">remove my World Map location</button>
+          </form>
+        )}
       </main>
       <SiteFooter />
     </div>

@@ -130,6 +130,7 @@ export function getBuilder(handle: string) {
     select: {
       ...authorSelect, bio: true, website: true, skills: true, createdAt: true, slackTeamId: true, openToCollab: true,
       timezone: true, streakLength: true, streakEnd: true, longestStreak: true, activeDays: true,
+      countryCode: true, cityId: true, onWorldMap: true, suspendedAt: true,
     },
   });
 }

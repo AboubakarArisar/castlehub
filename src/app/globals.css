@@ -276,3 +276,69 @@
     animation: none !important;
   }
 }
+
+/* World Map: a selected beacon breathes; a planted flag rises and unfurls once. */
+@keyframes beacon-pulse {
+  from {
+    transform: scale(0.6);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes flag-pole {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes flag-cloth {
+  0% {
+    transform: scaleX(0);
+  }
+  70% {
+    transform: scaleX(1.12) skewY(-4deg);
+  }
+  100% {
+    transform: scaleX(1) skewY(0);
+  }
+}
+@keyframes flag-ripple {
+  from {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0.8;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+  }
+}
+.animate-beacon-pulse {
+  animation: beacon-pulse 1.8s ease-out infinite;
+}
+.animate-flag-pole {
+  transform-origin: bottom;
+  animation: flag-pole 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.animate-flag-cloth {
+  transform-origin: left center;
+  animation: flag-cloth 520ms 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.animate-flag-ripple {
+  animation: flag-ripple 900ms 300ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-beacon-pulse,
+  .animate-flag-ripple {
+    animation: none !important;
+    opacity: 0;
+  }
+  .animate-flag-pole,
+  .animate-flag-cloth {
+    animation: none !important;
+  }
+}
