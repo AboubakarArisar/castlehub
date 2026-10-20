@@ -66,7 +66,7 @@ export function ProjectForm({
         {e.type && <p className="mt-1.5 text-body-s text-red" role="alert">{e.type}</p>}
       </fieldset>
 
-      <Field label="Description" hint="What it is, who it's for, what you'd like feedback on." error={e.description} id="description">
+      <Field label="Description" hint="What it is, who it's for, what you'd like feedback on. Supports **bold**, *italic*, [links](https://…) and - lists." error={e.description} id="description">
         <textarea id="description" name="description" defaultValue={defaults.description} rows={7} maxLength={5000} required aria-invalid={Boolean(e.description)} className={`${input} field-sizing-content min-h-40 resize-y`} />
       </Field>
 

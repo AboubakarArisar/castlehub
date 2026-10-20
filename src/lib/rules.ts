@@ -4,7 +4,7 @@ import { z } from "zod";
 
 // Top-level routes a handle must never shadow.
 export const RESERVED_HANDLES = new Set([
-  "api", "feed", "discover", "launchpad", "projects", "settings", "signin", "signout",
+  "api", "post", "feed", "discover", "launchpad", "projects", "settings", "signin", "signout",
   "onboarding", "builders", "admin", "about", "help", "terms", "privacy", "new", "edit",
   "castlehub", "skycastle", "slack", "uploads", "_next", "static", "public",
 ]);
@@ -84,6 +84,10 @@ export const postSchema = z
     projectId: z.string().trim().optional().transform((v) => v || undefined),
   })
   .refine((p) => p.body.length > 0 || p.imageUrl, { message: "Write something or add an image", path: ["body"] });
+
+export const commentSchema = z.object({
+  body: z.string().trim().min(1, "Write a comment first").max(1000, "Comments are up to 1000 characters"),
+});
 
 // ── Helpers ────────────────────────────────────────────────
 

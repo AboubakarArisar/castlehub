@@ -5,7 +5,7 @@ import { SlackButton } from "@/components/landing-hero";
 import { Post } from "@/components/post";
 import { PageHeader } from "@/components/shell";
 import { getFeed, getOwnProjects } from "@/lib/queries";
-import { getViewer } from "@/lib/session";
+import { asBuilder, getViewer } from "@/lib/session";
 
 export const metadata: Metadata = { title: "feed · castlehub" };
 
@@ -46,7 +46,7 @@ export default async function FeedPage() {
           <p className="mt-2 text-body text-muted">Be the first to share what you&apos;re building.</p>
         </div>
       ) : (
-        posts.map((p) => <Post key={p.id} post={p} viewerId={viewer?.id} canReact={Boolean(viewer?.handle)} />)
+        posts.map((p) => <Post key={p.id} post={p} viewer={asBuilder(viewer)} />)
       )}
     </>
   );

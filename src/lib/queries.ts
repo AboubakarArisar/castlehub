@@ -11,6 +11,9 @@ const postInclude = {
   project: { select: { name: true, slug: true, tagline: true, type: true, iconUrl: true, launchWeek: true, owner: { select: { handle: true } } } },
   // ponytail: reactions are loaded per post and counted in JS; move to grouped counts if posts get heavy traffic.
   reactions: { select: { kind: true, userId: true } },
+  // Two newest comments as a preview under each post; the full thread lives on /post/[id].
+  comments: { include: { author: { select: authorSelect } }, orderBy: { createdAt: "desc" }, take: 2 },
+  _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
 type RawPost = Prisma.PostGetPayload<{ include: typeof postInclude }>;
@@ -22,7 +25,7 @@ function shapePost(p: RawPost, viewerId?: string) {
     counts[r.kind]++;
     if (r.userId === viewerId) mine.add(r.kind);
   }
-  return { ...p, reactions: undefined, counts, mine: [...mine] };
+  return { ...p, reactions: undefined, counts, mine: [...mine], comments: [...p.comments].reverse() };
 }
 export type FeedPost = ReturnType<typeof shapePost>;
 
@@ -30,6 +33,23 @@ export async function getFeed(viewerId?: string, where: Prisma.PostWhereInput = 
   const rows = await db.post.findMany({ where, include: postInclude, orderBy: { createdAt: "desc" }, take });
   return rows.map((p) => shapePost(p, viewerId));
 }
+
+export async function getPost(id: string, viewerId?: string) {
+  const p = await db.post.findUnique({ where: { id }, include: postInclude });
+  return p ? shapePost(p, viewerId) : null;
+}
+
+// ── Comments ───────────────────────────────────────────────
+
+export function getComments(target: { postId: string } | { projectId: string }) {
+  return db.comment.findMany({
+    where: target,
+    include: { author: { select: authorSelect } },
+    orderBy: { createdAt: "asc" },
+    take: 200,
+  });
+}
+export type CommentRow = Awaited<ReturnType<typeof getComments>>[number];
 
 // ── Projects ───────────────────────────────────────────────
 

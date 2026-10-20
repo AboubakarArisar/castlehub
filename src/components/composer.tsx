@@ -52,7 +52,11 @@ function ComposerForm({
             maxLength={2000}
             className="field-sizing-content min-h-12 w-full resize-none bg-transparent pt-2 text-body-l placeholder:font-display placeholder:text-[19px] placeholder:font-bold placeholder:tracking-[-0.02em] placeholder:text-muted/70 focus:outline-none focus-visible:outline-none"
           />
-          {state.errors?.body && <p className="text-body-s text-red" role="alert">{state.errors.body}</p>}
+          {state.errors?.body ? (
+            <p className="text-body-s text-red" role="alert">{state.errors.body}</p>
+          ) : (
+            text.length > 0 && <p className="text-[11px] text-muted">**bold** · *italic* · `code` · [link](https://…) · @handle · - list</p>
+          )}
         </div>
       </div>
 

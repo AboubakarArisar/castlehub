@@ -29,3 +29,8 @@ export async function requireBuilder() {
   if (!viewer.handle) redirect("/onboarding");
   return viewer as Viewer & { handle: string };
 }
+
+/** The viewer as a builder who can post, react and comment, or null. */
+export function asBuilder(viewer: Viewer | null) {
+  return viewer?.handle ? { id: viewer.id, handle: viewer.handle, image: viewer.image } : null;
+}

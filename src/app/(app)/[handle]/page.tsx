@@ -6,7 +6,7 @@ import { Avatar } from "@/components/avatar";
 import { Post } from "@/components/post";
 import { ProjectRow } from "@/components/project-row";
 import { getBuilder, getFeed, getProjects } from "@/lib/queries";
-import { getViewer } from "@/lib/session";
+import { asBuilder, getViewer } from "@/lib/session";
 
 export async function generateMetadata({ params }: PageProps<"/[handle]">): Promise<Metadata> {
   const { handle } = await params;
@@ -89,7 +89,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
         (posts.length === 0 ? (
           <Empty text={isMe ? "Share what you're working on." : "No posts yet."} href={isMe ? "/feed" : undefined} />
         ) : (
-          posts.map((p) => <Post key={p.id} post={p} viewerId={viewer?.id} canReact={Boolean(viewer?.handle)} />)
+          posts.map((p) => <Post key={p.id} post={p} viewer={asBuilder(viewer)} />)
         ))}
     </>
   );
