@@ -31,6 +31,7 @@ export function Globe({
   arcs,
   selected,
   target,
+  zoom,
   flag,
   reducedMotion,
   onSelect,
@@ -41,6 +42,8 @@ export function Globe({
   arcs: { from: [number, number]; to: [number, number] }[];
   selected: string | null;
   target: FlyTarget | null;
+  /** Zoom buttons in the toolbar: multiply the zoom by `factor`. */
+  zoom: { factor: number; nonce: number } | null;
   flag: PlantedFlag | null;
   reducedMotion: boolean;
   onSelect: (key: string) => void;
@@ -250,11 +253,12 @@ export function Globe({
     };
   }, []);
 
-  const zoomBy = (factor: number) => {
+  useEffect(() => {
+    if (!zoom) return;
     const v = view.current;
-    flight.current = { from: { phi: v.phi, theta: v.theta, scale: v.scale }, to: { phi: v.phi, theta: v.theta, scale: clamp(v.scale * factor, MIN_SCALE, MAX_SCALE) }, start: performance.now(), dur: 350 };
+    flight.current = { from: { phi: v.phi, theta: v.theta, scale: v.scale }, to: { phi: v.phi, theta: v.theta, scale: clamp(v.scale * zoom.factor, MIN_SCALE, MAX_SCALE) }, start: performance.now(), dur: 350 };
     v.lastInput = performance.now();
-  };
+  }, [zoom]);
 
   return (
     // touch-action pan-y: a vertical swipe still scrolls the page on phones; sideways drags and pinches go to the globe.
@@ -320,10 +324,6 @@ export function Globe({
         </div>
       )}
 
-      <div className="absolute right-2 bottom-2 flex flex-col gap-1">
-        <button type="button" onClick={() => zoomBy(1.4)} aria-label="Zoom in" className="grid size-8 place-items-center rounded-sm border border-white/10 bg-[#0d1020]/80 text-ink hover:border-white/30">+</button>
-        <button type="button" onClick={() => zoomBy(1 / 1.4)} aria-label="Zoom out" className="grid size-8 place-items-center rounded-sm border border-white/10 bg-[#0d1020]/80 text-ink hover:border-white/30">−</button>
-      </div>
     </div>
   );
 }

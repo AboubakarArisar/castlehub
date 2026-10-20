@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Dices, Flag, List, Globe2, LocateFixed, MapPin, Search, X } from "lucide-react";
+import { Dices, Flag, Globe2, List, LocateFixed, MapPin, Minus, Plus, Search, X } from "lucide-react";
 import type { WorldState } from "@/actions/world";
 import type { FlyTarget, GlobeCluster, PlantedFlag } from "@/components/world/globe";
 import { LocationForm, type LocationDefaults } from "@/components/world/location-form";
@@ -48,7 +48,10 @@ export function WorldExplorer({
   const [webgl, setWebgl] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [announce, setAnnounce] = useState("");
+  const [zoom, setZoom] = useState<{ factor: number; nonce: number } | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const empty = markers.length === 0;
+  const showGlobe = webgl && !listView;
 
   useEffect(() => {
     const c = document.createElement("canvas");
@@ -141,8 +144,7 @@ export function WorldExplorer({
     router.refresh();
   };
 
-  const empty = markers.length === 0;
-  const showGlobe = webgl && !listView;
+
 
   return (
     <section className="dark relative isolate overflow-hidden bg-[#07080d] text-ink" aria-labelledby="world-h">
@@ -175,6 +177,7 @@ export function WorldExplorer({
           listView={listView || !webgl}
           canToggle={webgl}
           onToggleList={() => setListView((v) => !v)}
+          onZoom={showGlobe ? (factor) => setZoom({ factor, nonce: Date.now() }) : undefined}
         />
       </div>
 
@@ -186,6 +189,7 @@ export function WorldExplorer({
               arcs={category ? [] : arcs}
               selected={selected}
               target={target}
+              zoom={zoom}
               flag={flag}
               reducedMotion={reducedMotion}
               onSelect={selectCluster}
@@ -280,12 +284,12 @@ function AddButton({ viewer, onPlant, className = "", label }: { viewer: Viewer;
 function FlagControl({ viewer, onPlant, onFind }: { viewer: Viewer; onPlant: () => void; onFind: () => void }) {
   if (!viewer.builder || !viewer.location.onWorldMap) return <AddButton viewer={viewer} onPlant={onPlant} label="plant your flag" />;
   return (
-    <div className="flex items-center gap-2 rounded-sm border border-white/10 bg-[#0d1020]/70 py-1.5 pr-1.5 pl-3 backdrop-blur">
+    <div className="flex h-10 items-center gap-2 rounded-sm border border-white/15 bg-[#0d1020]/70 pr-1 pl-3 backdrop-blur">
       <MapPin className="size-4 text-amber" aria-hidden="true" />
       <button type="button" onClick={onFind} className="text-body-s hover:underline">
         your flag: <span className="font-semibold text-ink">{viewer.placeLabel}</span>
       </button>
-      <button type="button" onClick={onPlant} className="h-8 rounded-sm border border-white/15 px-2.5 text-body-s hover:border-white/40">move or remove</button>
+      <button type="button" onClick={onPlant} className="h-8 rounded-sm border border-white/15 px-2.5 text-body-s transition-colors duration-120 hover:border-white/40">move or remove</button>
     </div>
   );
 }
@@ -301,6 +305,7 @@ function Toolbar({
   listView,
   canToggle,
   onToggleList,
+  onZoom,
 }: {
   markers: WorldMarker[];
   category: CategoryKey | null;
@@ -312,6 +317,7 @@ function Toolbar({
   listView: boolean;
   canToggle: boolean;
   onToggleList: () => void;
+  onZoom?: (factor: number) => void;
 }) {
   const [q, setQ] = useState("");
   const [people, setPeople] = useState<{ handle: string; name: string | null; image: string | null; place: string; label: string }[]>([]);
@@ -337,11 +343,12 @@ function Toolbar({
     setQ("");
   };
   const chip = (on: boolean) =>
-    `text-label shrink-0 rounded-sm border px-2.5 py-1.5 transition-colors duration-120 ${on ? "border-amber bg-amber text-amber-ink" : "border-white/15 bg-[#0d1020]/60 text-muted hover:text-ink"}`;
+    `text-label inline-flex h-10 shrink-0 items-center rounded-sm border px-3 transition-colors duration-120 ${on ? "border-amber bg-amber text-amber-ink" : "border-white/15 bg-[#0d1020]/70 text-muted backdrop-blur hover:border-white/40 hover:text-ink"}`;
 
   return (
-    <div className="relative z-10 mt-5 flex flex-wrap items-center gap-2 lg:flex-nowrap">
-      <div className="relative w-full shrink-0 sm:w-64">
+    <div className="relative z-10 mt-6 space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+      <div className="relative w-full sm:w-80">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" aria-hidden="true" />
         <input
           value={q}
@@ -384,27 +391,41 @@ function Toolbar({
         )}
       </div>
 
-      <div className="flex w-full min-w-0 gap-1.5 overflow-x-auto pb-0.5 lg:w-auto lg:flex-1" role="group" aria-label="Filter builders">
+      <div className="ml-auto flex gap-2">
+        <button type="button" onClick={onRandom} className="inline-flex h-10 items-center gap-2 rounded-sm border px-3.5 text-body-s font-semibold border-white/15 bg-[#0d1020]/70 backdrop-blur transition-colors duration-120 hover:border-white/40">
+          <Dices className="size-4" aria-hidden="true" /> random builder
+        </button>
+        <div className="flex">
+          <button type="button" onClick={onReset} aria-label="Reset view" title="Reset view" className="grid size-10 place-items-center rounded-l-sm border border-white/15 bg-[#0d1020]/70 backdrop-blur transition-colors duration-120 hover:border-white/40">
+            <LocateFixed className="size-4" />
+          </button>
+          {onZoom && (
+            <>
+              <button type="button" onClick={() => onZoom(1.4)} aria-label="Zoom in" title="Zoom in" className="-ml-px grid size-10 place-items-center border border-white/15 bg-[#0d1020]/70 backdrop-blur transition-colors duration-120 hover:border-white/40">
+                <Plus className="size-4" />
+              </button>
+              <button type="button" onClick={() => onZoom(1 / 1.4)} aria-label="Zoom out" title="Zoom out" className="-ml-px grid size-10 place-items-center border border-white/15 bg-[#0d1020]/70 backdrop-blur transition-colors duration-120 hover:border-white/40">
+                <Minus className="size-4" />
+              </button>
+            </>
+          )}
+          {canToggle && (
+            <button type="button" onClick={onToggleList} aria-pressed={listView} aria-label={listView ? "Show globe" : "Show as list"} title={listView ? "Show globe" : "Show as list"} className="-ml-px grid size-10 place-items-center rounded-r-sm border border-white/15 bg-[#0d1020]/70 backdrop-blur transition-colors duration-120 hover:border-white/40">
+              {listView ? <Globe2 className="size-4" /> : <List className="size-4" />}
+            </button>
+          )}
+        </div>
+      </div>
+      </div>
+
+      {/* Wraps on wider screens; swipes sideways (no scrollbar) on phones. */}
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filter builders">
         <button type="button" aria-pressed={!category} onClick={() => setCategory(null)} className={chip(!category)}>all builders</button>
         {CATEGORIES.map((c) => (
           <button key={c.key} type="button" aria-pressed={category === c.key} onClick={() => setCategory(category === c.key ? null : c.key)} className={chip(category === c.key)}>
             {c.label}
           </button>
         ))}
-      </div>
-
-      <div className="ml-auto flex shrink-0 gap-1.5">
-        <button type="button" onClick={onRandom} className="inline-flex h-9 items-center gap-1.5 rounded-sm border border-white/15 bg-[#0d1020]/60 px-3 text-body-s font-semibold hover:border-white/40">
-          <Dices className="size-4" aria-hidden="true" /> random builder
-        </button>
-        <button type="button" onClick={onReset} aria-label="Reset view" title="Reset view" className="grid size-9 place-items-center rounded-sm border border-white/15 bg-[#0d1020]/60 hover:border-white/40">
-          <LocateFixed className="size-4" />
-        </button>
-        {canToggle && (
-          <button type="button" onClick={onToggleList} aria-pressed={listView} aria-label={listView ? "Show globe" : "Show as list"} title={listView ? "Show globe" : "Show as list"} className="grid size-9 place-items-center rounded-sm border border-white/15 bg-[#0d1020]/60 hover:border-white/40">
-            {listView ? <Globe2 className="size-4" /> : <List className="size-4" />}
-          </button>
-        )}
       </div>
     </div>
   );

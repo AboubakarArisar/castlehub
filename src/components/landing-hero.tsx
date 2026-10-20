@@ -79,7 +79,10 @@ export function SlackButton({ size = "lg" }: { size?: "lg" | "sm" }) {
         big ? "h-12 gap-3 px-6 text-body-l" : "h-9 gap-2 px-3.5 text-body"
       }`}
     >
-      <SlackLogo className={big ? "size-5" : "size-4"} /> sign in<span className={big ? "" : "hidden sm:inline"}>&nbsp;with slack</span>
+      <SlackLogo className={big ? "size-5" : "size-4"} />
+      <span>
+        sign in<span className={big ? "" : "hidden sm:inline"}> with slack</span>
+      </span>
     </Link>
   );
 }
