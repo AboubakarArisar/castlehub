@@ -31,6 +31,7 @@ export async function claimHandle(_prev: FormState, formData: FormData): Promise
 
 export async function updateProfile(_prev: FormState, formData: FormData): Promise<FormState> {
   const viewer = await requireViewer();
+  if (viewer.suspendedAt) redirect("/suspended");
   const parsed = profileSchema.safeParse({
     name: formData.get("name"),
     headline: formData.get("headline") ?? undefined,
@@ -43,7 +44,7 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
 
   const { image, ...rest } = parsed.data;
   // Keep the current avatar (e.g. the Slack photo) unless a new upload replaced it.
-  const data = image && image !== viewer.image ? (isOwnUpload(image) ? { ...rest, image } : null) : rest;
+  const data = image && image !== viewer.image ? (isOwnUpload(image, viewer.id) ? { ...rest, image } : null) : rest;
   if (!data) return { errors: { image: "Upload the image again" } };
 
   await db.user.update({ where: { id: viewer.id }, data });

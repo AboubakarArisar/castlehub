@@ -155,8 +155,8 @@ export function embedUrl(raw: string | null | undefined) {
   try {
     const u = new URL(raw);
     const host = u.hostname.replace(/^www\.|^m\./, "");
-    if (host === "youtube.com" && u.searchParams.get("v")) return `https://www.youtube-nocookie.com/embed/${u.searchParams.get("v")}`;
-    if (host === "youtu.be" && u.pathname.length > 1) return `https://www.youtube-nocookie.com/embed${u.pathname}`;
+    const yt = host === "youtube.com" ? u.searchParams.get("v") : host === "youtu.be" ? u.pathname.slice(1) : null;
+    if (yt && /^[\w-]{11}$/.test(yt)) return `https://www.youtube-nocookie.com/embed/${yt}`;
     if (host === "vimeo.com" && /^\/\d+$/.test(u.pathname)) return `https://player.vimeo.com/video${u.pathname}`;
   } catch {}
   return null;

@@ -24,9 +24,15 @@ const instrumentSerif = Instrument_Serif({
   style: "italic",
 });
 
+const description = "Where SkyCastle builders post work in progress, launch projects and find people to build with.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.AUTH_URL ?? "https://castlehub.aboubakarisar.tech"),
   title: "castlehub",
-  description: "Where SkyCastle builders show what they're making.",
+  description,
+  // Link previews in Slack, X, Discord and iMessage.
+  openGraph: { type: "website", siteName: "castlehub", title: "castlehub", description, images: [{ url: "/og.jpg", width: 1200, height: 630 }] },
+  twitter: { card: "summary_large_image", title: "castlehub", description, images: ["/og.jpg"] },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

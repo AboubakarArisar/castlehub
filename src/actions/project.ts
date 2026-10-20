@@ -23,9 +23,9 @@ function readProject(formData: FormData) {
   });
 }
 
-function badUploads(icon: string | undefined, images: string[]): Record<string, string> | null {
-  if (icon && !isOwnUpload(icon)) return { iconUrl: "Upload the icon again" };
-  if (images.some((u) => !isOwnUpload(u))) return { images: "Upload the images again" };
+function badUploads(userId: string, icon: string | undefined, images: string[]): Record<string, string> | null {
+  if (icon && !isOwnUpload(icon, userId)) return { iconUrl: "Upload the icon again" };
+  if (images.some((u) => !isOwnUpload(u, userId))) return { images: "Upload the images again" };
   return null;
 }
 
@@ -43,7 +43,7 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
   const parsed = readProject(formData);
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
   const { images, launch, ...p } = parsed.data;
-  const bad = badUploads(p.iconUrl, images);
+  const bad = badUploads(viewer.id, p.iconUrl, images);
   if (bad) return { errors: bad };
 
   const slug = await uniqueSlug(viewer.id, p.name);
@@ -68,7 +68,7 @@ export async function updateProject(projectId: string, _prev: FormState, formDat
   const parsed = readProject(formData);
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
   const { images, launch, ...p } = parsed.data;
-  const bad = badUploads(p.iconUrl, images);
+  const bad = badUploads(viewer.id, p.iconUrl, images);
   if (bad) return { errors: bad };
 
   const slug = await uniqueSlug(viewer.id, p.name, projectId);

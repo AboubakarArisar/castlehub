@@ -35,12 +35,18 @@ export async function saveImage(file: File, userId: string): Promise<string> {
   return LOCAL_PREFIX + name;
 }
 
-/** Only accept image URLs that our own upload endpoint produced. */
-export function isOwnUpload(url: string) {
+// Our own Blob store's public host. The token is vercel_blob_rw_<storeId>_<secret>
+// and public files live at https://<storeid>.public.blob.vercel-storage.com.
+const storeId = /^vercel_blob_rw_([a-z0-9]+)_/i.exec(process.env.BLOB_READ_WRITE_TOKEN ?? "")?.[1]?.toLowerCase();
+const isOurBlobHost = (host: string) =>
+  storeId ? host === `${storeId}.public.blob.vercel-storage.com` : host.endsWith(".public.blob.vercel-storage.com");
+
+/** Only accept image URLs that our own upload endpoint produced, for this user. */
+export function isOwnUpload(url: string, userId: string) {
   if (url.startsWith(LOCAL_PREFIX)) return !useBlob && /^[a-f0-9]{24}\.(png|jpg|gif|webp)$/.test(url.slice(LOCAL_PREFIX.length));
   try {
     const u = new URL(url);
-    return u.protocol === "https:" && u.hostname.endsWith(".public.blob.vercel-storage.com") && u.pathname.startsWith("/u/");
+    return u.protocol === "https:" && isOurBlobHost(u.hostname) && u.pathname.startsWith(`/u/${userId}/`);
   } catch {
     return false;
   }

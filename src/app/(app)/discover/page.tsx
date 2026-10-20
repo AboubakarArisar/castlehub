@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/shell";
+import { Pager, pageParam } from "@/components/pager";
 import { ProjectRow } from "@/components/project-row";
 import type { ProjectType } from "@/generated/prisma/client";
 import { getProjects } from "@/lib/queries";
@@ -13,15 +14,18 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
   const sp = await searchParams;
   const type = PROJECT_TYPES.find((t) => t === String(sp.type ?? "").toUpperCase()) as ProjectType | undefined;
   const sort = sp.sort === "top" ? "top" : "new";
+  const page = pageParam(sp.page);
   const viewer = await getViewer();
-  const projects = await getProjects({ viewerId: viewer?.id, type, sort, take: 50 });
+  const rows = await getProjects({ viewerId: viewer?.id, type, sort, take: 51, skip: (page - 1) * 50 });
+  const projects = rows.slice(0, 50);
 
-  const href = (next: { type?: string; sort?: string }) => {
+  const href = (next: { type?: string; sort?: string; page?: number }) => {
     const q = new URLSearchParams();
     const t = "type" in next ? next.type : type?.toLowerCase();
     const s = "sort" in next ? next.sort : sort;
     if (t) q.set("type", t);
     if (s === "top") q.set("sort", "top");
+    if (next.page && next.page > 1) q.set("page", String(next.page));
     const qs = q.toString();
     return qs ? `/discover?${qs}` : "/discover";
   };
@@ -61,7 +65,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
         })}
       </nav>
 
-      {projects.length === 0 ? (
+      {projects.length === 0 && page === 1 ? (
         <div className="px-6 py-16 text-center">
           <p className="text-title-l">no projects {type ? `in ${TYPE_LABEL[type]}` : ""} yet</p>
           <Link href="/projects/new" className="mt-3 inline-block text-body font-semibold text-cobalt hover:underline">
@@ -75,6 +79,7 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
           ))}
         </ol>
       )}
+      <Pager page={page} hasMore={rows.length > 50} href={(n) => href({ page: n })} older="more projects" newer="previous" />
     </>
   );
 }

@@ -49,7 +49,9 @@ test("project and post validation", () => {
 });
 
 test("embedUrl allowlists YouTube and Vimeo", () => {
-  assert.equal(embedUrl("https://youtu.be/abc123"), "https://www.youtube-nocookie.com/embed/abc123");
+  assert.equal(embedUrl("https://youtu.be/dQw4w9WgXcQ"), "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+  assert.equal(embedUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10"), "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+  assert.equal(embedUrl("https://www.youtube.com/watch?v=../../x?autoplay=1"), null);
   assert.equal(embedUrl("https://vimeo.com/12345"), "https://player.vimeo.com/video/12345");
   assert.equal(embedUrl("https://evil.example/embed"), null);
 });

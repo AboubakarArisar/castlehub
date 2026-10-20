@@ -29,8 +29,8 @@ function shapePost(p: RawPost, viewerId?: string) {
 }
 export type FeedPost = ReturnType<typeof shapePost>;
 
-export async function getFeed(viewerId?: string, where: Prisma.PostWhereInput = {}, take = 30) {
-  const rows = await db.post.findMany({ where, include: postInclude, orderBy: { createdAt: "desc" }, take });
+export async function getFeed(viewerId?: string, where: Prisma.PostWhereInput = {}, take = 30, skip = 0) {
+  const rows = await db.post.findMany({ where, include: postInclude, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take, skip });
   return rows.map((p) => shapePost(p, viewerId));
 }
 
@@ -85,6 +85,7 @@ export async function getProjects(opts: {
   launchWeek?: string;
   ownerId?: string;
   take?: number;
+  skip?: number;
 }) {
   const where: Prisma.ProjectWhereInput = {
     ...(opts.type && { type: opts.type }),
@@ -94,9 +95,9 @@ export async function getProjects(opts: {
   };
   const orderBy: Prisma.ProjectOrderByWithRelationInput[] =
     opts.sort === "top" || opts.launchWeek
-      ? [{ upvotes: { _count: "desc" } }, { createdAt: "desc" }]
-      : [{ createdAt: "desc" }];
-  const rows = await db.project.findMany({ where, select: projectCard, orderBy, take: opts.take ?? 30 });
+      ? [{ upvotes: { _count: "desc" } }, { createdAt: "desc" }, { id: "desc" }]
+      : [{ createdAt: "desc" }, { id: "desc" }];
+  const rows = await db.project.findMany({ where, select: projectCard, orderBy, take: opts.take ?? 30, skip: opts.skip });
   return withUpvoted(rows, opts.viewerId);
 }
 

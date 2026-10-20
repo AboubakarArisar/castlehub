@@ -18,7 +18,7 @@ export async function createPost(_prev: FormState, formData: FormData): Promise<
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
   const { body, imageUrl, projectId } = parsed.data;
 
-  if (imageUrl && !isOwnUpload(imageUrl)) return { errors: { imageUrl: "Upload the image again" } };
+  if (imageUrl && !isOwnUpload(imageUrl, viewer.id)) return { errors: { imageUrl: "Upload the image again" } };
   if (projectId) {
     const own = await db.project.findFirst({ where: { id: projectId, ownerId: viewer.id }, select: { id: true } });
     if (!own) return { errors: { projectId: "You can only tag your own projects" } };
