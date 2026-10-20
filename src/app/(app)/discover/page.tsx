@@ -3,8 +3,9 @@ import Link from "next/link";
 import { PageHeader } from "@/components/shell";
 import { Pager, pageParam } from "@/components/pager";
 import { ProjectRow } from "@/components/project-row";
+import { BuildersOnARoll } from "@/components/streaks";
 import type { ProjectType } from "@/generated/prisma/client";
-import { getProjects } from "@/lib/queries";
+import { getBuildersOnARoll, getProjects } from "@/lib/queries";
 import { PROJECT_TYPES, TYPE_LABEL } from "@/lib/rules";
 import { getViewer } from "@/lib/session";
 
@@ -16,7 +17,10 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
   const sort = sp.sort === "top" ? "top" : "new";
   const page = pageParam(sp.page);
   const viewer = await getViewer();
-  const rows = await getProjects({ viewerId: viewer?.id, type, sort, take: 51, skip: (page - 1) * 50 });
+  const [rows, onARoll] = await Promise.all([
+    getProjects({ viewerId: viewer?.id, type, sort, take: 51, skip: (page - 1) * 50 }),
+    page === 1 && !type ? getBuildersOnARoll() : [],
+  ]);
   const projects = rows.slice(0, 50);
 
   const href = (next: { type?: string; sort?: string; page?: number }) => {
@@ -46,6 +50,8 @@ export default async function DiscoverPage({ searchParams }: PageProps<"/discove
           ))}
         </nav>
       </PageHeader>
+
+      <BuildersOnARoll builders={onARoll} />
 
       <nav aria-label="Filter by type" className="flex gap-1.5 overflow-x-auto border-b border-line px-4 py-3 md:px-6">
         {[undefined, ...PROJECT_TYPES].map((t) => {

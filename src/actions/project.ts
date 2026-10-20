@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { notify, notifyOnce } from "@/lib/notify";
 import { fieldErrors, isoWeek, projectSchema, slugify } from "@/lib/rules";
 import { requireBuilder } from "@/lib/session";
+import { creditBuild, revokeBuild } from "@/lib/streak-store";
 import { isOwnUpload } from "@/lib/storage";
 import type { FormState } from "./profile";
 
@@ -57,6 +58,8 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
   if (bad) return { errors: bad };
   const team = await resolveCollaborators(viewer.id, collaborators);
   if (team.error) return { errors: { collaborators: team.error } };
+  const recent = await db.project.count({ where: { ownerId: viewer.id, createdAt: { gte: new Date(Date.now() - 3600_000) } } });
+  if (recent >= 5) return { errors: { form: "That's a lot of projects in an hour. Try again a little later." } };
 
   const slug = await uniqueSlug(viewer.id, p.name);
   const project = await db.project.create({
@@ -71,6 +74,8 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
     select: { id: true },
   });
   await notify(team.ids!.map((userId) => ({ userId, actorId: viewer.id, kind: "COLLABORATOR_ADDED" as const, projectId: project.id })));
+  const day = await creditBuild(viewer.id).catch((e) => void console.error("streak credit failed", e));
+  if (day) await db.project.update({ where: { id: project.id }, data: { buildDay: day } });
   revalidatePath("/", "layout");
   redirect(`/${viewer.handle}/${slug}`);
 }
@@ -118,8 +123,10 @@ export async function updateProject(projectId: string, _prev: FormState, formDat
 
 export async function deleteProject(projectId: string) {
   const viewer = await requireBuilder();
-  const { count } = await db.project.deleteMany({ where: { id: projectId, ownerId: viewer.id } });
-  if (count === 0) throw new Error("You can only delete your own projects.");
+  const project = await db.project.findFirst({ where: { id: projectId, ownerId: viewer.id }, select: { buildDay: true } });
+  if (!project) throw new Error("You can only delete your own projects.");
+  await db.project.delete({ where: { id: projectId } });
+  await revokeBuild(viewer.id, project.buildDay);
   revalidatePath("/", "layout");
   redirect(`/${viewer.handle}`);
 }

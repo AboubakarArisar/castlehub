@@ -3,6 +3,7 @@ import { cache } from "react";
 import type { Prisma, ProjectType, ReactionKind } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { isoWeek, shiftWeek } from "@/lib/rules";
+import { addDays, currentStreak, dateToDay, dayIn, dayToDate, rollOrder } from "@/lib/streaks";
 
 const authorSelect = { id: true, name: true, handle: true, image: true, headline: true } as const;
 
@@ -126,7 +127,10 @@ export async function getProject(handle: string, slug: string, viewerId?: string
 export function getBuilder(handle: string) {
   return db.user.findUnique({
     where: { handle },
-    select: { ...authorSelect, bio: true, website: true, skills: true, createdAt: true, slackTeamId: true, openToCollab: true },
+    select: {
+      ...authorSelect, bio: true, website: true, skills: true, createdAt: true, slackTeamId: true, openToCollab: true,
+      timezone: true, streakLength: true, streakEnd: true, longestStreak: true, activeDays: true,
+    },
   });
 }
 
@@ -210,3 +214,29 @@ export function getNotifications(userId: string) {
   });
 }
 export type NotificationRow = Awaited<ReturnType<typeof getNotifications>>[number];
+
+// ── Build streaks ──────────────────────────────────────────
+
+/** A builder's last ~12 months of build days (one indexed range read) and earned milestones. */
+export async function getStreakHistory(userId: string, sinceDay: string) {
+  const [days, milestones] = await Promise.all([
+    db.buildDay.findMany({ where: { userId, day: { gte: dayToDate(sinceDay) } }, select: { day: true, count: true } }),
+    db.streakMilestone.findMany({ where: { userId }, select: { days: true, awardedAt: true }, orderBy: { days: "asc" } }),
+  ]);
+  return { counts: new Map(days.map((d) => [dateToDay(d.day), d.count])), milestones };
+}
+
+/** Builders with a live streak, in a daily-rotating order that also surfaces newer members. */
+export async function getBuildersOnARoll(take = 6) {
+  const now = new Date();
+  // Streak ends are stored in each builder's own timezone, so look two UTC days back, then check exactly.
+  const candidates = await db.user.findMany({
+    where: { handle: { not: null }, suspendedAt: null, streakLength: { gte: 2 }, streakEnd: { gte: dayToDate(addDays(dayIn(now), -2)) } },
+    select: { ...authorSelect, streakLength: true, streakEnd: true, timezone: true, createdAt: true },
+    take: 60,
+  });
+  const live = candidates
+    .map((u) => ({ ...u, streak: currentStreak(u.streakLength, u.streakEnd && dateToDay(u.streakEnd), dayIn(now, u.timezone)), joinedDaysAgo: (now.getTime() - u.createdAt.getTime()) / 864e5 }))
+    .filter((u) => u.streak >= 2);
+  return rollOrder(live, dayIn(now)).slice(0, take);
+}

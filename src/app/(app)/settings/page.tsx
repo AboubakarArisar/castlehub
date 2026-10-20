@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   const viewer = await requireBuilder();
   const me = await db.user.findUniqueOrThrow({
     where: { id: viewer.id },
-    select: { name: true, headline: true, bio: true, website: true, skills: true, image: true, email: true, openToCollab: true },
+    select: { name: true, headline: true, bio: true, website: true, skills: true, image: true, email: true, openToCollab: true, timezone: true },
   });
 
   return (
@@ -26,7 +26,9 @@ export default async function SettingsPage() {
           skills: me.skills.join(", "),
           openToCollab: me.openToCollab,
           image: me.image,
+          timezone: me.timezone ?? "",
         }}
+        zones={Intl.supportedValuesOf("timeZone")}
       />
       <section className="border-t border-line px-4 py-6 md:px-6">
         <p className="text-label text-muted">account</p>

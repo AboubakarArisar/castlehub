@@ -17,16 +17,24 @@ model User {
   image         String?
 
   // CastleHub profile. handle is claimed during onboarding.
-  handle       String?   @unique
-  headline     String?
-  bio          String?
-  website      String?
-  skills       String[]  @default([])
-  slackTeamId  String?
+  handle        String?   @unique
+  headline      String?
+  bio           String?
+  website       String?
+  skills        String[]  @default([])
+  slackTeamId   String?
   // Set by an admin: a suspended user can read but not post, comment, react or publish.
-  suspendedAt  DateTime?
+  suspendedAt   DateTime?
   // Shown on the profile and filterable in search.
-  openToCollab Boolean   @default(false)
+  openToCollab  Boolean   @default(false)
+  // IANA zone ("Asia/Karachi") deciding which calendar day a build counts for; null = UTC.
+  timezone      String?
+  // Build streak summary, recalculated from BuildDay whenever a day is added or removed.
+  // The current streak is derived on read: the run only counts if streakEnd is today or yesterday.
+  streakLength  Int       @default(0)
+  streakEnd     DateTime? @db.Date
+  longestStreak Int       @default(0)
+  activeDays    Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -41,6 +49,10 @@ model User {
   collaborations ProjectCollaborator[]
   notifications  Notification[]        @relation("recipient")
   notified       Notification[]        @relation("actor")
+  buildDays      BuildDay[]
+  milestones     StreakMilestone[]
+
+  @@index([streakEnd])
 }
 
 model Account {
@@ -109,6 +121,8 @@ model Project {
   iconUrl     String?
   // ISO week ("2026-W43") when entered into the Launchpad; null = Discover only.
   launchWeek  String?
+  // The build day this project credited (null if it earned no credit).
+  buildDay    DateTime?   @db.Date
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -160,6 +174,8 @@ model Post {
   projectId String?
   createdAt DateTime  @default(now())
   editedAt  DateTime?
+  // The build day this post credited (null if it earned no credit, e.g. a duplicate).
+  buildDay  DateTime? @db.Date
 
   author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
@@ -249,19 +265,22 @@ enum NotificationKind {
   PROJECT_UPVOTE
   MENTION
   COLLABORATOR_ADDED
+  STREAK_MILESTONE
 }
 
 // Written by the action that caused it; the bell polls the unread count (no sockets).
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  actorId   String
-  kind      NotificationKind
-  postId    String?
-  projectId String?
-  commentId String?
-  readAt    DateTime?
-  createdAt DateTime         @default(now())
+  id         String           @id @default(cuid())
+  userId     String
+  actorId    String
+  kind       NotificationKind
+  postId     String?
+  projectId  String?
+  commentId  String?
+  // For STREAK_MILESTONE: the milestone reached, in days.
+  streakDays Int?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
 
   user    User     @relation("recipient", fields: [userId], references: [id], onDelete: Cascade)
   actor   User     @relation("actor", fields: [actorId], references: [id], onDelete: Cascade)
@@ -271,4 +290,29 @@ model Notification {
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
+}
+
+// ── Build streaks ──────────────────────────────────────────
+
+// One row per builder per calendar day (in their timezone) with qualifying activity.
+// The primary key makes double-crediting a day impossible, even with concurrent posts.
+model BuildDay {
+  userId String
+  day    DateTime @db.Date
+  count  Int      @default(1)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day])
+}
+
+// Milestones are awarded once per builder; the key makes awards idempotent.
+model StreakMilestone {
+  userId    String
+  days      Int
+  awardedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, days])
 }

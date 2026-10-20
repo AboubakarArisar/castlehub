@@ -5,6 +5,7 @@ import { SlackButton } from "@/components/landing-hero";
 import { Pager, pageParam } from "@/components/pager";
 import { Post } from "@/components/post";
 import { PageHeader } from "@/components/shell";
+import { StreakWidget } from "@/components/streaks";
 import { WinnerCard } from "@/components/winner-card";
 import { getFeed, getLastWeekWinner, getOwnProjects } from "@/lib/queries";
 import { isoWeek, shiftWeek } from "@/lib/rules";
@@ -30,6 +31,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
       <PageHeader title={<>what&apos;s <span className="accent-serif">shipping</span> in the castle</>} />
       {winner && <WinnerCard project={winner} week={shiftWeek(isoWeek(), -1)} label="last week's top launch" />}
 
+      {builder && viewer?.handle && <StreakWidget viewer={{ ...viewer, handle: viewer.handle }} />}
       {builder ? (
         <Composer viewer={builder} projects={projects} />
       ) : (

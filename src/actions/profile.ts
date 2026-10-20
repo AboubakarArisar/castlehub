@@ -6,6 +6,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { fieldErrors, handleSchema, profileSchema } from "@/lib/rules";
 import { requireViewer } from "@/lib/session";
+import { isValidTimeZone } from "@/lib/streaks";
 import { isOwnUpload } from "@/lib/storage";
 
 export type FormState = { errors?: Record<string, string>; ok?: boolean };
@@ -40,8 +41,10 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
     skills: formData.get("skills") ?? "",
     image: formData.get("image") ?? undefined,
     openToCollab: formData.get("openToCollab") === "on",
+    timezone: formData.get("timezone") ?? undefined,
   });
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
+  if (parsed.data.timezone && !isValidTimeZone(parsed.data.timezone)) return { errors: { timezone: "Pick a timezone from the list" } };
 
   const { image, ...rest } = parsed.data;
   // Keep the current avatar (e.g. the Slack photo) unless a new upload replaced it.

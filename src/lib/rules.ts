@@ -57,6 +57,7 @@ export const profileSchema = z.object({
   skills: csvList(10, 24, "skill"),
   image: z.string().trim().optional().transform((v) => v || null),
   openToCollab: z.boolean(),
+  timezone: z.string().trim().max(64).optional().transform((v) => v || null),
 });
 
 export const PROJECT_TYPES = ["GAME", "WEBSITE", "AI_TOOL", "MUSIC", "ART", "VIDEO", "OTHER"] as const;

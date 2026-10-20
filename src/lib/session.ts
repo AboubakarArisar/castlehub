@@ -15,7 +15,10 @@ export const getViewer = cache(async () => {
   if (!id) return null;
   const user = await db.user.findUnique({
     where: { id },
-    select: { id: true, name: true, image: true, handle: true, suspendedAt: true },
+    select: {
+      id: true, name: true, image: true, handle: true, suspendedAt: true,
+      timezone: true, streakLength: true, streakEnd: true,
+    },
   });
   return user && { ...user, isAdmin: ADMIN_IDS.has(user.id) };
 });

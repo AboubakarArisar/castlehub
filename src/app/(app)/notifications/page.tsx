@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/shell";
 import { getNotifications, type NotificationRow } from "@/lib/queries";
 import { timeAgo } from "@/lib/rules";
 import { requireViewer } from "@/lib/session";
+import { milestoneName } from "@/lib/streaks";
 
 export const metadata: Metadata = { title: "notifications · castlehub", robots: { index: false } };
 
@@ -31,6 +32,11 @@ function describe(n: NotificationRow): { text: React.ReactNode; href: string } {
       return {
         text: <>mentioned you: {snip(n.comment?.body ?? n.post?.body)}</>,
         href: n.commentId ? `${n.postId ? postHref : projectHref}#comments` : postHref,
+      };
+    case "STREAK_MILESTONE":
+      return {
+        text: <>reached a {n.streakDays}-day build streak: <strong className="font-semibold text-amber">{milestoneName(n.streakDays ?? 0)}</strong></>,
+        href: `/${n.actor.handle}#streak`,
       };
   }
 }
@@ -57,7 +63,7 @@ export default async function NotificationsPage() {
                 <Link href={href} className="flex items-start gap-3 px-4 py-3.5 hover:bg-surface md:px-6">
                   <Avatar seed={n.actor.handle ?? n.actor.id} src={n.actor.image} size={36} />
                   <p className="min-w-0 flex-1 text-body">
-                    <span className="font-semibold">{n.actor.name}</span> <span className="text-muted">{text}</span>
+                    <span className="font-semibold">{n.kind === "STREAK_MILESTONE" ? "You" : n.actor.name}</span> <span className="text-muted">{text}</span>
                   </p>
                   <span className="flex shrink-0 items-center gap-2 text-body-s text-muted">
                     {timeAgo(n.createdAt)}

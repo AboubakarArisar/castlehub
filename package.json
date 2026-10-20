@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test src/lib/*.test.ts src/lib/*.test.tsx",
+    "test:db": "tsx --conditions=react-server --test src/lib/*.itest.ts",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"

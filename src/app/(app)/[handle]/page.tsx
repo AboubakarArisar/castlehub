@@ -5,6 +5,7 @@ import { CalendarDays, Link2 } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { Post } from "@/components/post";
 import { ProjectRow } from "@/components/project-row";
+import { StreakSection } from "@/components/streaks";
 import { getBuilder, getFeed, getProjects } from "@/lib/queries";
 import { asBuilder, getViewer } from "@/lib/session";
 
@@ -67,6 +68,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps<"/
             ))}
           </ul>
         )}
+        <StreakSection builder={builder} />
         <nav aria-label="Profile" className="mt-6 -mb-5 flex gap-6">
           {(["projects", "posts"] as const).map((t) => (
             <Link

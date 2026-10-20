@@ -40,8 +40,10 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
 
 export function ProfileForm({
   defaults,
+  zones,
 }: {
-  defaults: { name: string; headline: string; bio: string; website: string; skills: string; image: string | null; openToCollab: boolean };
+  defaults: { name: string; headline: string; bio: string; website: string; skills: string; image: string | null; openToCollab: boolean; timezone: string };
+  zones: string[];
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(updateProfile, {});
   const e = state.errors ?? {};
@@ -73,6 +75,17 @@ export function ProfileForm({
         <span className="block text-body-s text-muted">Comma separated, up to 10.</span>
         <input id="skills" name="skills" defaultValue={defaults.skills} placeholder="typescript, godot, blender" aria-invalid={Boolean(e.skills)} className={input} />
         <Err msg={e.skills} />
+      </div>
+      <div>
+        <label htmlFor="timezone" className="text-body font-medium">Timezone</label>
+        <span className="block text-body-s text-muted">Decides which day your builds count for in your streak. Set from your browser when you first post.</span>
+        <select id="timezone" name="timezone" defaultValue={defaults.timezone} aria-invalid={Boolean(e.timezone)} className={input}>
+          <option value="">UTC (default)</option>
+          {zones.map((z) => (
+            <option key={z} value={z}>{z.replaceAll("_", " ")}</option>
+          ))}
+        </select>
+        <Err msg={e.timezone} />
       </div>
       <label className="flex cursor-pointer items-start gap-3 border border-line-strong p-4 has-checked:border-green has-checked:bg-green/10">
         <input type="checkbox" name="openToCollab" defaultChecked={defaults.openToCollab} className="mt-1 size-4 accent-[var(--green)]" />

@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { notifyMentions, notifyOnce } from "@/lib/notify";
 import { fieldErrors, mentionedHandles, postSchema } from "@/lib/rules";
 import { requireBuilder } from "@/lib/session";
+import { creditBuild, revokeBuild } from "@/lib/streak-store";
+import { isValidTimeZone } from "@/lib/streaks";
 import { isOwnUpload } from "@/lib/storage";
 import type { FormState } from "./profile";
 
@@ -25,7 +27,25 @@ export async function createPost(_prev: FormState, formData: FormData): Promise<
     if (!own) return { errors: { projectId: "You can only tag your own projects" } };
   }
 
+  // Rate limit, and no streak credit for re-posting the same thing.
+  const since = (ms: number) => ({ gte: new Date(Date.now() - ms) });
+  const [recent, last] = await Promise.all([
+    db.post.count({ where: { authorId: viewer.id, createdAt: since(10 * 60_000) } }),
+    db.post.findFirst({ where: { authorId: viewer.id, createdAt: since(24 * 3600_000) }, orderBy: { createdAt: "desc" }, select: { body: true, imageUrl: true } }),
+  ]);
+  if (recent >= 10) return { errors: { body: "You're posting fast. Take a breather and try again in a few minutes." } };
+  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const duplicate = Boolean(last && norm(last.body) === norm(body) && (last.imageUrl ?? undefined) === imageUrl);
+
+  // The browser's timezone, saved once so build days follow the builder's own calendar.
+  const tz = formData.get("tz");
+  if (!viewer.timezone && isValidTimeZone(tz)) await db.user.update({ where: { id: viewer.id }, data: { timezone: tz } });
+
   const post = await db.post.create({ data: { authorId: viewer.id, body, imageUrl, projectId }, select: { id: true } });
+  if (!duplicate) {
+    const day = await creditBuild(viewer.id).catch((e) => void console.error("streak credit failed", e));
+    if (day) await db.post.update({ where: { id: post.id }, data: { buildDay: day } });
+  }
   await notifyMentions(mentionedHandles(body), { actorId: viewer.id, postId: post.id });
   revalidatePath("/", "layout");
   return { ok: true };
@@ -50,7 +70,11 @@ export async function updatePost(postId: string, _prev: FormState, formData: For
 
 export async function deletePost(postId: string) {
   const viewer = await requireBuilder();
-  await db.post.deleteMany({ where: { id: postId, authorId: viewer.id } });
+  const post = await db.post.findFirst({ where: { id: postId, authorId: viewer.id }, select: { buildDay: true } });
+  if (!post) return;
+  await db.post.delete({ where: { id: postId } });
+  // Deleted posts give back their streak credit, so posting-then-deleting can't keep a streak.
+  await revokeBuild(viewer.id, post.buildDay);
   revalidatePath("/", "layout");
 }
 

@@ -65,6 +65,10 @@ Open http://localhost:3000 for the landing page and http://localhost:3000/feed f
 | `npm run build` | Production build |
 | `npm run start` | Serve the production build |
 | `npm run lint` | Run ESLint |
+| `npm test` | Unit tests (rules, formatting, build streak logic) |
+| `npm run test:db` | Database tests for build streaks. Needs a throwaway local Postgres; refuses any non-localhost `DATABASE_URL` |
+
+For a local database, `npx prisma dev` starts one. It serves one connection at a time, so also set `DATABASE_POOL_MAX=1` when running the app against it.
 
 No environment variables are needed for the prototype. Database, sign-in and Slack settings will be documented in `.env.example` when those milestones land.
 

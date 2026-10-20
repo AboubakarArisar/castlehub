@@ -30,6 +30,7 @@ function ComposerForm({
 }) {
   const [text, setText] = useState("");
   const [state, action, pending] = useActionState(async (prev: FormState, data: FormData) => {
+    data.set("tz", Intl.DateTimeFormat().resolvedOptions().timeZone);
     const result = await createPost(prev, data);
     if (result.ok) onPosted();
     return result;
