@@ -83,3 +83,26 @@ export function builderCategories(b: { headline?: string | null; skills?: string
   const text = [b.headline ?? "", ...(b.skills ?? [])].join(" · ");
   return CATEGORIES.filter((c) => c.words.test(text) || c.types.some((t) => b.projectTypes?.includes(t))).map((c) => c.key);
 }
+
+// ── Local time ─────────────────────────────────────────────
+
+export const PERIODS = [
+  { key: "night", label: "night owls", from: 0, to: 5 },
+  { key: "early", label: "early birds", from: 5, to: 9 },
+  { key: "day", label: "daytime", from: 9, to: 18 },
+  { key: "evening", label: "evening", from: 18, to: 24 },
+] as const;
+
+/** A place's local time right now: label ("11:42 pm"), fractional hour, period, and day/night. */
+export function localClock(tz: string, now: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit", hourCycle: "h23" }).formatToParts(now);
+  const hour = Number(parts.find((p) => p.type === "hour")!.value) % 24;
+  const minute = Number(parts.find((p) => p.type === "minute")!.value);
+  const label = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" }).format(now).toLowerCase();
+  return {
+    label,
+    hours: hour + minute / 60,
+    period: PERIODS.find((p) => hour >= p.from && hour < p.to)!.key,
+    night: hour < 6 || hour >= 19,
+  };
+}

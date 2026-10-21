@@ -20,6 +20,8 @@ export type WorldMarker = {
   country: string;
   lat: number;
   lng: number;
+  /** The place's timezone (from the public place, never a builder's private setting). */
+  tz: string | null;
   count: number;
   /** Builders per interest, so filters work without another request. */
   categories: Partial<Record<CategoryKey, number>>;

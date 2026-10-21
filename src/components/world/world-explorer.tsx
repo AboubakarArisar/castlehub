@@ -4,11 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Dices, Flag, Globe2, List, LocateFixed, MapPin, Minus, Plus, Search, X } from "lucide-react";
+import { Dices, Flag, Globe2, List, LocateFixed, MapPin, Minus, Moon, Plus, Search, Sun, Sunrise, Sunset, X } from "lucide-react";
 import type { WorldState } from "@/actions/world";
 import type { FlyTarget, GlobeCluster, PlantedFlag } from "@/components/world/globe";
 import { LocationForm, type LocationDefaults } from "@/components/world/location-form";
-import { CATEGORIES, clusterDegreesFor, clusterPlaces, type CategoryKey } from "@/lib/world-math";
+import { CATEGORIES, clusterDegreesFor, clusterPlaces, localClock, PERIODS, type CategoryKey } from "@/lib/world-math";
 import type { PlaceBuilders, WorldMarker } from "@/lib/world";
 
 // The globe (and WebGL) only loads on this page, after the shell has painted.
@@ -49,6 +49,14 @@ export function WorldExplorer({
   const [reducedMotion, setReducedMotion] = useState(false);
   const [announce, setAnnounce] = useState("");
   const [zoom, setZoom] = useState<{ factor: number; nonce: number } | null>(null);
+  // Local times are worked out in the browser (after mount, so server and client HTML agree) and tick every 30 s.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- start the clock once mounted
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(t);
+  }, []);
   const dialog = useRef<HTMLDialogElement>(null);
   const empty = markers.length === 0;
   const showGlobe = webgl && !listView;
@@ -78,8 +86,9 @@ export function WorldExplorer({
         places: c.places.length,
         label: c.places.length > 1 ? `Around ${c.places[0].label}` : c.places[0].label,
         avatars: c.places.flatMap((p) => p.avatars).slice(0, 4),
+        clock: now && c.places[0].tz ? localClock(c.places[0].tz, now) : null,
       })),
-    [visible, band],
+    [visible, band, now],
   );
   const byKey = useMemo(() => new Map(visible.map((m) => [m.key, m])), [visible]);
   const selectedCluster = selected ? clusterPlaces(visible, band).find((c) => c.key === selected) : undefined;
@@ -212,6 +221,7 @@ export function WorldExplorer({
           )}
         </div>
 
+        {!empty && <TimeRibbon markers={visible} now={now} onOpen={(k) => openPlace(k)} />}
         <Counter stats={stats} />
       </div>
 
@@ -222,6 +232,7 @@ export function WorldExplorer({
           marker={byKey.get(selected) ?? null}
           category={category}
           highlight={highlight}
+          now={now}
           onClose={() => setSelected(null)}
           onPlace={(k) => openPlace(k)}
         />
@@ -484,6 +495,7 @@ function PlacePanel({
   marker,
   category,
   highlight,
+  now,
   onClose,
   onPlace,
 }: {
@@ -491,6 +503,7 @@ function PlacePanel({
   marker: WorldMarker | null;
   category: CategoryKey | null;
   highlight: string | null;
+  now: Date | null;
   onClose: () => void;
   onPlace: (key: string) => void;
 }) {
@@ -533,6 +546,7 @@ function PlacePanel({
           <p className="text-body-s text-muted">
             {(several ? cluster!.count : (last?.total ?? place?.count ?? 0))} {category ? CATEGORIES.find((c) => c.key === category)!.label.toLowerCase() : "builders"}
           </p>
+          {!several && place?.tz && now && <LocalTime tz={place.tz} now={now} />}
         </div>
         <button type="button" onClick={onClose} aria-label="Close" className="grid size-8 shrink-0 place-items-center rounded-sm border border-white/15 text-muted hover:text-ink">
           <X className="size-4" />
@@ -596,5 +610,97 @@ function PlacePanel({
         </div>
       )}
     </aside>
+  );
+}
+
+const PERIOD_ICON = { night: Moon, early: Sunrise, day: Sun, evening: Sunset } as const;
+
+function LocalTime({ tz, now }: { tz: string; now: Date }) {
+  const c = localClock(tz, now);
+  const Icon = PERIOD_ICON[c.period];
+  return (
+    <p className={`mt-1 flex items-center gap-1.5 text-body-s ${c.night ? "text-cobalt" : "text-amber"}`}>
+      <Icon className="size-3.5" aria-hidden="true" /> {c.label} there · {PERIODS.find((p) => p.key === c.period)!.label}
+    </p>
+  );
+}
+
+/**
+ * "Who's cooking right now": every place on the map at its current local time, midnight to
+ * midnight. Uses only each place's public timezone; places in multi-zone countries are left out.
+ */
+function TimeRibbon({ markers, now, onOpen }: { markers: WorldMarker[]; now: Date | null; onOpen: (key: string) => void }) {
+  if (!now) return null;
+  const timed = markers
+    .filter((m) => m.tz)
+    .map((m) => ({ m, c: localClock(m.tz!, now) }))
+    .sort((a, b) => a.c.hours - b.c.hours);
+  const untimed = markers.length - timed.length;
+  // Stack places that are close in time into lanes so nothing overlaps.
+  const laneEnds: number[] = [];
+  const placed = timed.map((t) => {
+    const x = t.c.hours / 24;
+    // ~a chip's width on the narrowest ribbon (560px), so chips in one lane never touch.
+    let lane = laneEnds.findIndex((end) => x - end > 0.17);
+    if (lane === -1) lane = laneEnds.push(x) - 1;
+    else laneEnds[lane] = x;
+    return { ...t, x, lane };
+  });
+  const lanes = Math.max(1, laneEnds.length);
+  const shade = { night: "bg-[#05060c]", early: "bg-cobalt/10", day: "bg-amber/10", evening: "bg-cobalt/[0.06]" } as const;
+
+  return (
+    <section aria-labelledby="clock-h" className="relative z-10 mt-8 rounded-sm border border-white/10 bg-[#0d1020]/70 p-4 backdrop-blur md:p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="clock-h" className="font-display text-[20px] font-extrabold tracking-[-0.02em]">
+          who&apos;s <span className="accent-serif text-amber">cooking</span> right now
+        </h2>
+        <p className="text-body-s text-muted">every place on the map, at its local time</p>
+      </div>
+
+      <div className="-mx-4 mt-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden">
+        <div className="relative min-w-[560px]" style={{ height: 34 + lanes * 34 }}>
+          {PERIODS.map((p) => {
+            const Icon = PERIOD_ICON[p.key];
+            return (
+              <div key={p.key} className={`absolute inset-y-0 border-r border-white/5 ${shade[p.key]}`} style={{ left: `${(p.from / 24) * 100}%`, width: `${((p.to - p.from) / 24) * 100}%` }}>
+                <span className="text-label absolute bottom-1.5 left-2 flex items-center gap-1 text-muted">
+                  <Icon className="size-3" aria-hidden="true" /> {p.label}
+                </span>
+              </div>
+            );
+          })}
+          {placed.map(({ m, c, x, lane }) => (
+            <button
+              key={m.key}
+              type="button"
+              onClick={() => onOpen(m.key)}
+              title={`${m.label} · ${c.label}`}
+              aria-label={`${m.label}: ${m.count} ${m.count === 1 ? "builder" : "builders"}, ${c.label} there`}
+              className="group absolute flex items-center gap-1 rounded-full border border-white/15 bg-[#0d1020] py-0.5 pr-2 pl-0.5 whitespace-nowrap transition-colors duration-120 hover:border-white/50"
+              // Centred on its time, but kept inside the ribbon near midnight on either end.
+              style={{ left: `${x * 100}%`, top: 6 + lane * 34, transform: `translateX(${x < 0.08 ? 0 : x > 0.92 ? -100 : -50}%)` }}
+            >
+              {m.avatars[0]?.image ? (
+                // eslint-disable-next-line @next/next/no-img-element -- small remote avatar
+                <img src={m.avatars[0].image} alt="" className="size-5 rounded-full object-cover" />
+              ) : (
+                <span className={`grid size-5 place-items-center rounded-full text-[10px] font-bold ${c.night ? "bg-cobalt text-on-cobalt" : "bg-amber text-amber-ink"}`}>{m.avatars[0]?.handle[0] ?? "·"}</span>
+              )}
+              <span className={`font-mono text-[11px] ${c.night ? "text-cobalt" : "text-amber"}`}>{c.label}</span>
+              {m.count > 1 && <span className="font-mono text-[10px] text-muted">×{m.count}</span>}
+            </button>
+          ))}
+        </div>
+        <div className="mt-1 flex min-w-[560px] justify-between font-mono text-[10px] text-muted" aria-hidden="true">
+          {["12am", "6am", "12pm", "6pm", "12am"].map((h, i) => <span key={i}>{h}</span>)}
+        </div>
+      </div>
+      {untimed > 0 && (
+        <p className="mt-2 text-body-s text-muted">
+          {untimed} {untimed === 1 ? "place spans" : "places span"} several time zones, so {untimed === 1 ? "it isn't" : "they aren't"} shown here.
+        </p>
+      )}
+    </section>
   );
 }

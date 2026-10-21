@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import createGlobe from "cobe";
+import { Moon, Sun } from "lucide-react";
 import { anglesFor, clusterDegreesFor, nearestAngle, project } from "@/lib/world-math";
 
 export type GlobeCluster = {
@@ -12,6 +13,8 @@ export type GlobeCluster = {
   label: string;
   places: number;
   avatars: { handle: string; image: string | null }[];
+  /** The place's local time right now, when it has a single timezone. */
+  clock: { label: string; night: boolean } | null;
 };
 export type FlyTarget = { lat: number; lng: number; scale: number; nonce: number };
 export type PlantedFlag = { lat: number; lng: number; label: string; nonce: number };
@@ -280,12 +283,12 @@ export function Globe({
               }}
               onClick={() => onSelect(c.key)}
               onFocus={(e) => e.currentTarget.matches(":focus-visible") && onFocusPlace(c.key)}
-              aria-label={`${c.label}: ${c.count} ${c.count === 1 ? "builder" : "builders"}`}
+              aria-label={`${c.label}: ${c.count} ${c.count === 1 ? "builder" : "builders"}${c.clock ? `, ${c.clock.label} there` : ""}`}
               aria-pressed={selected === c.key}
               className="group absolute top-0 left-0 opacity-0 outline-none"
               style={{ willChange: "transform" }}
             >
-              <Beacon count={c.count} active={selected === c.key} />
+              <Beacon count={c.count} active={selected === c.key} night={Boolean(c.clock?.night)} />
               <span
                 role="tooltip"
                 className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden w-max max-w-56 -translate-x-1/2 rounded-sm border border-white/10 bg-[#0d1020]/95 px-3 py-2 text-left shadow-xl group-hover:block group-focus-visible:block"
@@ -295,6 +298,12 @@ export function Globe({
                   {c.count} {c.count === 1 ? "builder" : "builders"}
                   {c.places > 1 && ` · ${c.places} places, zoom in`}
                 </span>
+                {c.clock && (
+                  <span className={`mt-0.5 flex items-center gap-1 text-body-s ${c.clock.night ? "text-cobalt" : "text-amber"}`}>
+                    {c.clock.night ? <Moon className="size-3" aria-hidden="true" /> : <Sun className="size-3" aria-hidden="true" />}
+                    {c.clock.label} local time
+                  </span>
+                )}
                 <span className="mt-1.5 flex -space-x-1.5">
                   {c.avatars.slice(0, 4).map((a) =>
                     a.image ? (
@@ -328,22 +337,24 @@ export function Globe({
   );
 }
 
-/** A tiny glowing castle outpost; bigger places get a count. */
-function Beacon({ count, active }: { count: number; active: boolean }) {
+/** A tiny glowing castle outpost: amber while it's day there, moonlit blue at night. */
+function Beacon({ count, active, night }: { count: number; active: boolean; night: boolean }) {
+  const glow = night ? "drop-shadow-[0_0_6px_rgba(123,144,255,0.85)]" : "drop-shadow-[0_0_6px_rgba(255,192,77,0.75)]";
+  const wall = night ? (active ? "#c3ceff" : "#9db0ff") : active ? "#ffd27a" : "#ffc04d";
   return (
     <span className="relative flex flex-col items-center">
-      {active && <span className="animate-beacon-pulse absolute top-1 size-6 rounded-full border border-amber" />}
-      <svg width="20" height="18" viewBox="0 0 20 18" className={`drop-shadow-[0_0_6px_rgba(255,192,77,0.75)] transition-transform duration-200 group-hover:scale-125 ${active ? "scale-125" : ""}`}>
-        <path d="M2 18V7h3v2h2V7h2v2h2V7h2v2h2V7h3v11h-6v-4a2 2 0 0 0-4 0v4z" fill={active ? "#ffd27a" : "#ffc04d"} />
-        <path d="M10 1v5" stroke="#ffc04d" strokeWidth="1.2" />
-        <path d="M10 1.2h4l-1.2 1.3L14 3.8h-4z" fill="#7b90ff" />
+      {active && <span className={`animate-beacon-pulse absolute top-1 size-6 rounded-full border ${night ? "border-cobalt" : "border-amber"}`} />}
+      <svg width="20" height="18" viewBox="0 0 20 18" className={`${glow} transition-transform duration-200 group-hover:scale-125 ${active ? "scale-125" : ""}`}>
+        <path d="M2 18V7h3v2h2V7h2v2h2V7h2v2h2V7h3v11h-6v-4a2 2 0 0 0-4 0v4z" fill={wall} />
+        <path d="M10 1v5" stroke={wall} strokeWidth="1.2" />
+        <path d="M10 1.2h4l-1.2 1.3L14 3.8h-4z" fill={night ? "#ffc04d" : "#7b90ff"} />
       </svg>
       {count > 1 && (
-        <span className="absolute -top-2 -right-3 min-w-4 rounded-full bg-[#0d1020] px-1 font-mono text-[9px] leading-4 font-bold text-amber ring-1 ring-amber/60">
+        <span className={`absolute -top-2 -right-3 min-w-4 rounded-full bg-[#0d1020] px-1 font-mono text-[9px] leading-4 font-bold ring-1 ${night ? "text-cobalt ring-cobalt/60" : "text-amber ring-amber/60"}`}>
           {count}
         </span>
       )}
-      <span className="mt-0.5 block size-1 rounded-full bg-amber shadow-[0_0_8px_2px_rgba(255,192,77,0.7)]" />
+      <span className={`mt-0.5 block size-1 rounded-full ${night ? "bg-cobalt shadow-[0_0_8px_2px_rgba(123,144,255,0.7)]" : "bg-amber shadow-[0_0_8px_2px_rgba(255,192,77,0.7)]"}`} />
     </span>
   );
 }

@@ -4,8 +4,8 @@ import data from "@/data/places.json";
 // Countries and cities (100k+ people) from GeoNames, built by scripts/build-places.py.
 // Coordinates are city or country centres, never anyone's actual location.
 
-export type Country = { code: string; name: string; lat: number; lng: number };
-export type City = { id: number; name: string; cc: string; lat: number; lng: number; region?: string };
+export type Country = { code: string; name: string; lat: number; lng: number; tz?: string };
+export type City = { id: number; name: string; cc: string; lat: number; lng: number; tz: string; region?: string };
 
 const countries = data.countries as Country[];
 const cities = data.cities as City[]; // most populous first
@@ -33,7 +33,8 @@ export function searchCities(cc: string, q: string, limit = 8) {
   return [...starts, ...contains].slice(0, limit);
 }
 
-export type Place = { key: string; label: string; country: string; lat: number; lng: number };
+/** tz: the place's own timezone (city, or a single-zone country); null when a country spans several. */
+export type Place = { key: string; label: string; country: string; lat: number; lng: number; tz: string | null };
 
 /**
  * The public map position for a builder's chosen country/city: the city centre, or the
@@ -44,9 +45,9 @@ export function placeFor(countryCode: string | null, cityId: number | null): Pla
   if (!country) return null;
   const city = getCity(cityId);
   if (city && city.cc === country.code) {
-    return { key: `c${city.id}`, label: `${cityLabel(city)}, ${country.name}`, country: country.name, lat: city.lat, lng: city.lng };
+    return { key: `c${city.id}`, label: `${cityLabel(city)}, ${country.name}`, country: country.name, lat: city.lat, lng: city.lng, tz: city.tz };
   }
-  return { key: `n${country.code}`, label: country.name, country: country.name, lat: country.lat, lng: country.lng };
+  return { key: `n${country.code}`, label: country.name, country: country.name, lat: country.lat, lng: country.lng, tz: country.tz ?? null };
 }
 
 /** Database filter for everyone at a place key ("c123" city, "nPK" country-only). */

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { anglesFor, angularDistance, builderCategories, clusterDegreesFor, clusterPlaces, nearestAngle, project } from "./world-math";
+import { anglesFor, angularDistance, builderCategories, clusterDegreesFor, clusterPlaces, localClock, nearestAngle, project } from "./world-math";
 
 const close = (a: number, b: number, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} ≈ ${b}`);
 
@@ -65,4 +65,19 @@ test("builder interests come from skills, headline and project types, several al
   assert.deepEqual(builderCategories({ headline: "Figma + UX" }), ["designers"]);
   assert.deepEqual(builderCategories({ headline: "hello" }), []);
   assert.deepEqual(builderCategories({ headline: "said maid" }), []); // no false "ai" inside words
+});
+
+test("local time per place, including daylight saving and half-hour zones", () => {
+  const at = new Date("2026-10-21T18:42:00Z");
+  const lahore = localClock("Asia/Karachi", at); // UTC+5
+  assert.equal(lahore.label, "11:42 pm");
+  assert.equal(lahore.period, "evening");
+  assert.equal(lahore.night, true);
+  assert.equal(localClock("America/Los_Angeles", at).label, "11:42 am"); // PDT, UTC-7
+  assert.equal(localClock("America/Los_Angeles", new Date("2026-11-21T18:42:00Z")).label, "10:42 am"); // PST after DST ends
+  assert.equal(localClock("Asia/Kolkata", at).label, "12:12 am"); // UTC+5:30
+  const kolkata = localClock("Asia/Kolkata", at);
+  assert.equal(kolkata.period, "night");
+  assert.ok(Math.abs(kolkata.hours - 0.2) < 1e-9);
+  assert.equal(localClock("Europe/London", new Date("2026-10-21T06:30:00Z")).period, "early"); // 7:30 BST
 });

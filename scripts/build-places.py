@@ -1,5 +1,6 @@
 """Builds src/data/places.json for the World Map: countries (with an approximate centre)
-and cities of 100,000+ people, each with rounded city-centre coordinates.
+and cities of 100,000+ people, each with rounded city-centre coordinates and IANA timezone.
+A country gets a timezone only when all its cities share one (Pakistan yes, the US no).
 
 Sources (downloaded when you run this, not at runtime):
   - GeoNames cities15000, admin1 codes and country info (CC BY 4.0, https://www.geonames.org)
@@ -44,18 +45,24 @@ def main():
 
     raw = zipfile.ZipFile(io.BytesIO(fetch("https://download.geonames.org/export/dump/cities15000.zip"))).read("cities15000.txt").decode("utf8")
     cities = []
+    zones = {}  # every timezone seen in each country, from all 15k+ towns for accuracy
     for line in raw.splitlines():
         f = line.split("\t")
-        cc, pop = f[8], int(f[14] or 0)
+        cc, pop, tz = f[8], int(f[14] or 0), f[17]
+        if tz:
+            zones.setdefault(cc, set()).add(tz)
         if pop < MIN_POPULATION or cc not in countries:
             continue
-        cities.append({"id": int(f[0]), "name": f[1], "cc": cc, "region": regions.get(f"{cc}.{f[10]}", ""), "lat": round(float(f[4]), 2), "lng": round(float(f[5]), 2), "pop": pop})
+        cities.append({"id": int(f[0]), "name": f[1], "cc": cc, "region": regions.get(f"{cc}.{f[10]}", ""), "lat": round(float(f[4]), 2), "lng": round(float(f[5]), 2), "pop": pop, "tz": tz})
+    for code, country in countries.items():
+        if len(zones.get(code, ())) == 1:
+            country["tz"] = next(iter(zones[code]))
 
     # Only name the region where two cities in one country share a name (Springfield, Illinois).
     dupes = Counter((c["cc"], c["name"]) for c in cities)
     out_cities = []
     for c in sorted(cities, key=lambda c: -c["pop"]):
-        city = {"id": c["id"], "name": c["name"], "cc": c["cc"], "lat": c["lat"], "lng": c["lng"]}
+        city = {"id": c["id"], "name": c["name"], "cc": c["cc"], "lat": c["lat"], "lng": c["lng"], "tz": c["tz"]}
         if dupes[(c["cc"], c["name"])] > 1 and c["region"]:
             city["region"] = c["region"]
         out_cities.append(city)
