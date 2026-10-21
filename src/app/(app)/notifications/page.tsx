@@ -19,9 +19,9 @@ function describe(n: NotificationRow): { text: React.ReactNode; href: string } {
   const postHref = n.post ? `/post/${n.post.id}` : "/";
   switch (n.kind) {
     case "POST_COMMENT":
-      return { text: <>commented on your post: {snip(n.comment?.body)}</>, href: `${postHref}#comments` };
+      return { text: n.comment?.kind === "VOICE" ? <>left a voice comment on your post</> : <>commented on your post: {snip(n.comment?.body)}</>, href: `${postHref}#comments` };
     case "PROJECT_COMMENT":
-      return { text: <>commented on {project}: {snip(n.comment?.body)}</>, href: `${projectHref}#comments` };
+      return { text: n.comment?.kind === "VOICE" ? <>left a voice comment on {project}</> : <>commented on {project}: {snip(n.comment?.body)}</>, href: `${projectHref}#comments` };
     case "POST_REACTION":
       return { text: <>reacted to your post {snip(n.post?.body)}</>, href: postHref };
     case "PROJECT_UPVOTE":

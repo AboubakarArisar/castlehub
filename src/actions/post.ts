@@ -8,7 +8,7 @@ import { fieldErrors, mentionedHandles, postSchema } from "@/lib/rules";
 import { requireBuilder } from "@/lib/session";
 import { creditBuild, revokeBuild } from "@/lib/streak-store";
 import { isValidTimeZone } from "@/lib/streaks";
-import { isOwnUpload } from "@/lib/storage";
+import { deleteStored, isOwnUpload } from "@/lib/storage";
 import type { FormState } from "./profile";
 
 export async function createPost(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -72,7 +72,9 @@ export async function deletePost(postId: string) {
   const viewer = await requireBuilder();
   const post = await db.post.findFirst({ where: { id: postId, authorId: viewer.id }, select: { buildDay: true } });
   if (!post) return;
+  const voices = await db.comment.findMany({ where: { postId, kind: "VOICE" }, select: { audioKey: true } });
   await db.post.delete({ where: { id: postId } });
+  await deleteStored(voices.map((v) => v.audioKey));
   // Deleted posts give back their streak credit, so posting-then-deleting can't keep a streak.
   await revokeBuild(viewer.id, post.buildDay);
   revalidatePath("/", "layout");

@@ -7,6 +7,7 @@ import { notify, notifyOnce } from "@/lib/notify";
 import { fieldErrors, isoWeek, projectSchema, slugify } from "@/lib/rules";
 import { requireBuilder } from "@/lib/session";
 import { creditBuild, revokeBuild } from "@/lib/streak-store";
+import { deleteStored } from "@/lib/storage";
 import { isOwnUpload } from "@/lib/storage";
 import type { FormState } from "./profile";
 
@@ -125,8 +126,10 @@ export async function deleteProject(projectId: string) {
   const viewer = await requireBuilder();
   const project = await db.project.findFirst({ where: { id: projectId, ownerId: viewer.id }, select: { buildDay: true } });
   if (!project) throw new Error("You can only delete your own projects.");
+  const voices = await db.comment.findMany({ where: { projectId, kind: "VOICE" }, select: { audioKey: true } });
   await db.project.delete({ where: { id: projectId } });
   await revokeBuild(viewer.id, project.buildDay);
+  await deleteStored(voices.map((v) => v.audioKey));
   revalidatePath("/", "layout");
   redirect(`/${viewer.handle}`);
 }

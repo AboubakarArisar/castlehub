@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { notify, notifyMentions } from "@/lib/notify";
 import { commentSchema, fieldErrors, mentionedHandles } from "@/lib/rules";
 import { requireBuilder } from "@/lib/session";
+import { deleteStored } from "@/lib/storage";
 import type { FormState } from "./profile";
 
 export type CommentTarget = { postId: string } | { projectId: string };
@@ -30,8 +31,9 @@ export async function createComment(target: CommentTarget, _prev: FormState, for
 
 export async function updateComment(commentId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const viewer = await requireBuilder();
-  const comment = await db.comment.findUnique({ where: { id: commentId }, select: { authorId: true } });
+  const comment = await db.comment.findUnique({ where: { id: commentId }, select: { authorId: true, kind: true } });
   if (!comment || comment.authorId !== viewer.id) return { errors: { body: "You can only edit your own comments." } };
+  if (comment.kind !== "TEXT") return { errors: { body: "Voice comments can't be edited. Delete it and record a new one." } };
   const parsed = commentSchema.safeParse({ body: formData.get("body") ?? "" });
   if (!parsed.success) return { errors: fieldErrors(parsed.error) };
   await db.comment.update({ where: { id: commentId }, data: { body: parsed.data.body, editedAt: new Date() } });
@@ -44,11 +46,13 @@ export async function deleteComment(commentId: string) {
   const viewer = await requireBuilder();
   const c = await db.comment.findUnique({
     where: { id: commentId },
-    select: { authorId: true, post: { select: { authorId: true } }, project: { select: { ownerId: true } } },
+    select: { authorId: true, audioKey: true, post: { select: { authorId: true } }, project: { select: { ownerId: true } } },
   });
   if (!c) return;
+  // No time limit: authors can delete whenever they like, however old the comment is.
   const allowed = c.authorId === viewer.id || c.post?.authorId === viewer.id || c.project?.ownerId === viewer.id;
   if (!allowed) throw new Error("You can't delete this comment.");
   await db.comment.delete({ where: { id: commentId } });
+  await deleteStored([c.audioKey]);
   revalidatePath("/", "layout");
 }

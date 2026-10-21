@@ -26,13 +26,13 @@ async function load(kind: Kind, q: string): Promise<Row[]> {
       where: q ? { OR: [{ body: text }, byAuthor] } : {},
       orderBy: { createdAt: "desc" },
       take: 50,
-      select: { id: true, body: true, createdAt: true, postId: true, author: { select: { handle: true } }, project: { select: { slug: true, name: true, owner: { select: { handle: true } } } } },
+      select: { id: true, body: true, kind: true, audioDuration: true, createdAt: true, postId: true, author: { select: { handle: true } }, project: { select: { slug: true, name: true, owner: { select: { handle: true } } } } },
     });
     return rows.map((c) => ({
       id: c.id,
       href: c.postId ? `/post/${c.postId}#comments` : `/${c.project?.owner.handle}/${c.project?.slug}#comments`,
       author: c.author.handle,
-      body: c.body,
+      body: c.kind === "VOICE" ? `voice comment (${Math.round(c.audioDuration ?? 0)}s)` : c.body,
       createdAt: c.createdAt,
       extra: c.postId ? "on a post" : `on ${c.project?.name}`,
     }));

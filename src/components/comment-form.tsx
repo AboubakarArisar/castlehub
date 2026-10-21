@@ -1,10 +1,11 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CornerDownLeft } from "lucide-react";
+import { CornerDownLeft, Mic } from "lucide-react";
 import { createComment, type CommentTarget } from "@/actions/comment";
 import type { FormState } from "@/actions/profile";
 import { Avatar } from "@/components/avatar";
+import { VoiceRecorder } from "@/components/voice";
 
 export function CommentForm({
   target,
@@ -32,6 +33,7 @@ function Form({
   onDone: () => void;
 }) {
   const [text, setText] = useState("");
+  const [recording, setRecording] = useState(false);
   const [state, action, pending] = useActionState(async (prev: FormState, data: FormData) => {
     const result = await createComment(target, prev, data);
     if (result.ok) onDone();
@@ -43,6 +45,10 @@ function Form({
     <form action={action} className="flex items-start gap-2.5">
       <Avatar seed={viewer.handle} src={viewer.image} size={compact ? 28 : 32} />
       <div className="min-w-0 flex-1">
+        {recording ? (
+          <VoiceRecorder target={target} onClose={() => setRecording(false)} />
+        ) : (
+        <>
         <label htmlFor={id} className="sr-only">Write a comment</label>
         <div className="flex items-end gap-2 rounded-sm border border-line-strong bg-surface px-3 py-1.5 transition-colors focus-within:border-cobalt">
           <textarea
@@ -62,6 +68,17 @@ function Form({
             placeholder={compact ? "write a comment…" : "add to the discussion…"}
             className="field-sizing-content max-h-40 min-h-7 w-full resize-none bg-transparent py-1 text-body placeholder:text-muted/70 focus:outline-none focus-visible:outline-none"
           />
+          {!text && (
+            <button
+              type="button"
+              onClick={() => setRecording(true)}
+              aria-label="Record a voice comment (up to 60 seconds)"
+              title="Record a voice comment"
+              className="mb-0.5 grid size-7 shrink-0 place-items-center rounded-sm text-muted transition-colors hover:bg-surface-2 hover:text-ink"
+            >
+              <Mic className="size-4" />
+            </button>
+          )}
           <button
             type="submit"
             disabled={pending || !text.trim()}
@@ -75,6 +92,8 @@ function Form({
           <p className="mt-1 text-body-s text-red" role="alert">{state.errors.body}</p>
         ) : (
           !compact && text.length > 0 && <p className="mt-1 text-[11px] text-muted">Enter to send · Shift+Enter for a new line · **bold** *italic* [link](https://…)</p>
+        )}
+        </>
         )}
       </div>
     </form>

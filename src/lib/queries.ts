@@ -15,7 +15,7 @@ const postInclude = {
   // ponytail: reactions are loaded per post and counted in JS; move to grouped counts if posts get heavy traffic.
   reactions: { select: { kind: true, userId: true } },
   // Two newest comments as a preview under each post; the full thread lives on /post/[id].
-  comments: { include: { author: { select: authorSelect } }, orderBy: { createdAt: "desc" }, take: 2 },
+  comments: { include: { author: { select: authorSelect } }, omit: { audioKey: true }, orderBy: { createdAt: "desc" }, take: 2 },
   _count: { select: { comments: true } },
 } satisfies Prisma.PostInclude;
 
@@ -48,6 +48,7 @@ export function getComments(target: { postId: string } | { projectId: string }) 
   return db.comment.findMany({
     where: target,
     include: { author: { select: authorSelect } },
+    omit: { audioKey: true },
     orderBy: { createdAt: "asc" },
     take: 200,
   });
@@ -210,7 +211,7 @@ export function getNotifications(userId: string) {
       actor: { select: authorSelect },
       post: { select: { id: true, body: true } },
       project: { select: { name: true, slug: true, owner: { select: { handle: true } } } },
-      comment: { select: { body: true } },
+      comment: { select: { body: true, kind: true } },
     },
   });
 }

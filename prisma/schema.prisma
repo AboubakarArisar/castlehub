@@ -229,17 +229,29 @@ model ProjectCollaborator {
   @@index([userId])
 }
 
+enum CommentKind {
+  TEXT
+  VOICE
+}
+
 // ── Comments ───────────────────────────────────────────────
 
 // A comment belongs to exactly one post or one project (checked in the action).
 model Comment {
-  id        String    @id @default(cuid())
-  authorId  String
-  body      String
-  postId    String?
-  projectId String?
-  createdAt DateTime  @default(now())
-  editedAt  DateTime?
+  id            String      @id @default(cuid())
+  authorId      String
+  body          String
+  postId        String?
+  projectId     String?
+  createdAt     DateTime    @default(now())
+  editedAt      DateTime?
+  // Voice comments: body is empty and the recording lives in object storage.
+  // audioKey is private (never sent to browsers); playback goes through /api/voice/[id].
+  kind          CommentKind @default(TEXT)
+  audioKey      String?
+  audioDuration Float?
+  audioMime     String?
+  audioSize     Int?
 
   author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   post          Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -343,4 +355,13 @@ model Discovery {
 
   @@unique([userId, builderId])
   @@unique([userId, projectId])
+}
+
+// Stored files whose deletion failed; retried on later uploads and deletions until gone.
+model StorageCleanup {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  attempts  Int      @default(0)
+  lastError String?
+  createdAt DateTime @default(now())
 }

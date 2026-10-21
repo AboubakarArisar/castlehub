@@ -5,6 +5,7 @@ import { Avatar } from "@/components/avatar";
 import { CommentForm } from "@/components/comment-form";
 import { ConfirmButton } from "@/components/confirm-button";
 import { EditableText } from "@/components/editable-text";
+import { VoicePlayer } from "@/components/voice";
 import type { CommentRow } from "@/lib/queries";
 import { RichText } from "@/lib/rich";
 import { timeAgo } from "@/lib/rules";
@@ -13,6 +14,7 @@ type Viewer = { id: string; handle: string; image: string | null } | null;
 
 export function CommentItem({ comment, canDelete, canEdit = false, compact = false }: { comment: CommentRow; canDelete: boolean; canEdit?: boolean; compact?: boolean }) {
   const a = comment.author;
+  const voice = comment.kind === "VOICE";
   return (
     <li className="group flex gap-2.5">
       <Link href={`/${a.handle}`} className="shrink-0" aria-label={`${a.name}'s profile`}>
@@ -25,7 +27,11 @@ export function CommentItem({ comment, canDelete, canEdit = false, compact = fal
             <time className="text-body-s text-muted" dateTime={comment.createdAt.toISOString()}>{timeAgo(comment.createdAt)}</time>
             {comment.editedAt && <span className="text-body-s text-muted">· edited</span>}
           </p>
-          {canEdit ? (
+          {voice ? (
+            <div className="mt-1.5">
+              <VoicePlayer id={comment.id} duration={comment.audioDuration ?? 0} author={a.name ?? a.handle ?? "a builder"} />
+            </div>
+          ) : canEdit ? (
             <EditableText initial={comment.body} save={updateComment.bind(null, comment.id)} maxLength={1000}>
               <RichText text={comment.body} className="mt-0.5 text-body" />
             </EditableText>
@@ -35,11 +41,16 @@ export function CommentItem({ comment, canDelete, canEdit = false, compact = fal
         </div>
       </div>
       {canDelete && (
-        <form action={deleteComment.bind(null, comment.id)} className="self-center opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        // Always visible on touch screens, where there is no hover.
+        <form action={deleteComment.bind(null, comment.id)} className="self-center opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
           <ConfirmButton
-            message="Delete this comment?"
-            aria-label="Delete comment"
-            title="Delete comment"
+            message={
+              voice
+                ? "Delete this voice comment? It disappears from CastleHub and its recording is deleted. Copies someone already saved elsewhere can't be recalled."
+                : "Delete this comment?"
+            }
+            aria-label={voice ? "Delete voice comment" : "Delete comment"}
+            title={voice ? "Delete voice comment" : "Delete comment"}
             className="grid size-8 place-items-center rounded-sm text-muted hover:bg-surface-2 hover:text-red"
           >
             <Trash2 className="size-3.5" />
