@@ -2,10 +2,13 @@ import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { db } from "@/lib/db";
 import { timeAgo } from "@/lib/rules";
+import { requireAdmin } from "@/lib/session";
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 864e5);
 
 export default async function AdminOverview() {
+  // Layouts render in parallel with pages, so every admin page checks for itself.
+  await requireAdmin();
   const week = { createdAt: { gte: daysAgo(7) } };
   const [users, builders, suspended, projects, posts, comments, upvotes, reactions, w] = await Promise.all([
     db.user.count(),

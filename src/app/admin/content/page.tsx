@@ -4,6 +4,7 @@ import { adminDeleteComment, adminDeletePost, adminDeleteProject } from "@/actio
 import { ConfirmButton } from "@/components/confirm-button";
 import { db } from "@/lib/db";
 import { timeAgo } from "@/lib/rules";
+import { requireAdmin } from "@/lib/session";
 
 const KINDS = ["posts", "comments", "projects"] as const;
 type Kind = (typeof KINDS)[number];
@@ -62,6 +63,8 @@ const CONFIRM = {
 };
 
 export default async function AdminContent({ searchParams }: PageProps<"/admin/content">) {
+  // Layouts render in parallel with pages, so every admin page checks for itself.
+  await requireAdmin();
   const sp = await searchParams;
   const kind: Kind = KINDS.find((k) => k === sp.type) ?? "posts";
   const q = String(sp.q ?? "").trim().slice(0, 100);
