@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Dices, Heart, Plus, Search, Settings, ShieldCheck } from "lucide-react";
+import { Dices, Heart, Palette, Plus, Search, Settings, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { SlackButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
@@ -47,6 +47,14 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
             className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-line-strong hover:text-ink"
           >
             <Search className="size-4" />
+          </Link>
+          <Link
+            href="/castle-wall"
+            aria-label="Castle Wall"
+            title="Castle Wall: draw on the community mural"
+            className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-amber hover:text-amber"
+          >
+            <Palette className="size-4" />
           </Link>
           <Link
             href="/roulette"

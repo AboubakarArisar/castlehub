@@ -17,29 +17,31 @@ model User {
   image         String?
 
   // CastleHub profile. handle is claimed during onboarding.
-  handle        String?   @unique
-  headline      String?
-  bio           String?
-  website       String?
-  skills        String[]  @default([])
-  slackTeamId   String?
+  handle           String?   @unique
+  headline         String?
+  bio              String?
+  website          String?
+  skills           String[]  @default([])
+  slackTeamId      String?
   // Set by an admin: a suspended user can read but not post, comment, react or publish.
-  suspendedAt   DateTime?
+  suspendedAt      DateTime?
   // Shown on the profile and filterable in search.
-  openToCollab  Boolean   @default(false)
+  openToCollab     Boolean   @default(false)
   // IANA zone ("Asia/Karachi") deciding which calendar day a build counts for; null = UTC.
-  timezone      String?
+  timezone         String?
   // Build streak summary, recalculated from BuildDay whenever a day is added or removed.
   // The current streak is derived on read: the run only counts if streakEnd is today or yesterday.
-  streakLength  Int       @default(0)
-  streakEnd     DateTime? @db.Date
-  longestStreak Int       @default(0)
-  activeDays    Int       @default(0)
+  streakLength     Int       @default(0)
+  streakEnd        DateTime? @db.Date
+  longestStreak    Int       @default(0)
+  activeDays       Int       @default(0)
   // World Map (opt-in). Only a country and optionally a city id from our place list are stored;
   // the map shows the city or country centre, never a precise location.
-  countryCode   String?
-  cityId        Int?
-  onWorldMap    Boolean   @default(false)
+  countryCode      String?
+  cityId           Int?
+  onWorldMap       Boolean   @default(false)
+  // Set by a moderator: can still view the Castle Wall but not claim, draw or report.
+  wallRestrictedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,6 +60,8 @@ model User {
   milestones     StreakMilestone[]
   discoveries    Discovery[]           @relation("discoverer")
   discoveredBy   Discovery[]           @relation("discovered")
+  wallTile       WallTile?
+  wallReports    WallReport[]
 
   @@index([streakEnd])
   @@index([onWorldMap, countryCode])
@@ -364,4 +368,73 @@ model StorageCleanup {
   attempts  Int      @default(0)
   lastError String?
   createdAt DateTime @default(now())
+}
+
+// ── Castle Wall ────────────────────────────────────────────
+
+enum WallReview {
+  NONE // never submitted
+  PENDING // waiting for a moderator
+  APPROVED // the submitted version is the published one
+  REJECTED // the last submission was turned down (reviewNote says why)
+}
+
+// A claimed square of the wall. No row means the square is free. The (x, y) and ownerId
+// uniques make claiming atomic: two people can't take one square, nobody holds two.
+model WallTile {
+  id      String @id @default(cuid())
+  x       Int
+  y       Int
+  ownerId String @unique
+
+  // Editable artwork: strokes as JSON (validated and size-limited), never shown publicly.
+  draft          Json?
+  draftUpdatedAt DateTime?
+
+  // The latest submission (private PNG in storage) and the approved, public one.
+  submittedKey     String?
+  submittedAt      DateTime?
+  review           WallReview @default(NONE)
+  reviewNote       String?
+  publishedKey     String?
+  publishedAt      DateTime?
+  publishedVersion Int        @default(0)
+
+  // Hidden by a moderator: kept, but not shown on the wall.
+  hiddenAt     DateTime?
+  hiddenReason String?
+
+  claimedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  reports WallReport[]
+
+  @@unique([x, y])
+  @@index([review])
+  @@index([updatedAt])
+}
+
+enum WallReportReason {
+  INAPPROPRIATE
+  OFFENSIVE
+  SPAM
+  COPIED
+  OTHER
+}
+
+model WallReport {
+  id         String           @id @default(cuid())
+  tileId     String
+  reporterId String
+  reason     WallReportReason
+  note       String?
+  createdAt  DateTime         @default(now())
+  resolvedAt DateTime?
+
+  tile     WallTile @relation(fields: [tileId], references: [id], onDelete: Cascade)
+  reporter User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([tileId, reporterId])
+  @@index([resolvedAt])
 }

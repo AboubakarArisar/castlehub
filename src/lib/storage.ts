@@ -53,12 +53,27 @@ export function isOwnUpload(url: string, userId: string) {
   }
 }
 
-// ── Voice comment audio ────────────────────────────────────
-// Stored under an unguessable key. The key never leaves the server: browsers play audio through
-// /api/voice/[commentId], which checks the comment still exists. Keys are a Blob URL in
-// production, or "local:<file>" in development.
+// ── Private stored files: voice comments and Castle Wall artwork ──────────
+// Stored under unguessable keys that never leave the server: browsers get the bytes through
+// CastleHub routes that check permissions first (/api/voice/[id], /api/wall/image/[id]).
+// Keys are a Blob URL in production, or "local:<file>" / "local:wall/<file>" in development.
 
 const AUDIO_DIR = path.join(LOCAL_UPLOAD_DIR, "audio");
+const LOCAL_KEY = /^(wall\/)?[a-f0-9]{32}\.(webm|ogg|m4a|png)$/;
+const localPath = (name: string) => (name.startsWith("wall/") ? path.join(LOCAL_UPLOAD_DIR, name) : path.join(AUDIO_DIR, name));
+
+/** A tile's submitted artwork (PNG). Each submission gets a fresh key, so nothing is overwritten. */
+export async function saveWallImage(bytes: Uint8Array, tileId: string): Promise<string> {
+  const name = `${randomBytes(16).toString("hex")}.png`;
+  if (useBlob) {
+    const blob = await put(`wall/${tileId}/${name}`, Buffer.from(bytes), { access: "public", contentType: "image/png", addRandomSuffix: false });
+    return blob.url;
+  }
+  if (process.env.NODE_ENV === "production") throw new UploadError("Uploads are not configured.");
+  await mkdir(path.join(LOCAL_UPLOAD_DIR, "wall"), { recursive: true });
+  await writeFile(path.join(LOCAL_UPLOAD_DIR, "wall", name), bytes);
+  return `local:wall/${name}`;
+}
 
 export async function saveAudio(bytes: Uint8Array, userId: string, kind: { mime: string; ext: string }): Promise<string> {
   const name = `${randomBytes(16).toString("hex")}.${kind.ext}`;
@@ -72,12 +87,12 @@ export async function saveAudio(bytes: Uint8Array, userId: string, kind: { mime:
   return `local:${name}`;
 }
 
-/** Stream stored audio, passing through Range requests so players can seek. */
-export async function readAudio(key: string, range: string | null, mime: string): Promise<Response> {
+/** Stream a stored file, passing through Range requests so audio players can seek. */
+export async function readStored(key: string, range: string | null, mime: string): Promise<Response> {
   if (key.startsWith("local:")) {
     const name = key.slice(6);
-    if (!/^[a-f0-9]{32}\.(webm|ogg|m4a)$/.test(name)) return new Response(null, { status: 404 });
-    const file = await readFile(path.join(AUDIO_DIR, name)).catch(() => null);
+    if (!LOCAL_KEY.test(name)) return new Response(null, { status: 404 });
+    const file = await readFile(localPath(name)).catch(() => null);
     if (!file) return new Response(null, { status: 404 });
     const m = range && /^bytes=(\d*)-(\d*)$/.exec(range);
     if (m && (m[1] || m[2])) {
@@ -100,7 +115,9 @@ export async function readAudio(key: string, range: string | null, mime: string)
 }
 
 async function removeNow(key: string) {
-  if (key.startsWith("local:")) await rm(path.join(AUDIO_DIR, key.slice(6)), { force: true });
+  if (key.startsWith("local:")) {
+    if (LOCAL_KEY.test(key.slice(6))) await rm(localPath(key.slice(6)), { force: true });
+  }
   else await del(key);
 }
 
