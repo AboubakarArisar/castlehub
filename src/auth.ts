@@ -4,9 +4,10 @@ import { db } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // JWT sessions: required by the credentials provider, and no session
-  // table lookups on every request.
-  session: { strategy: "jwt" },
+  // JWT sessions: a signed, encrypted cookie keyed by AUTH_SECRET, no session table.
+  // Expires after 1 hour without activity; renewed at most every 5 minutes while in use.
+  // Rotating AUTH_SECRET logs everyone out.
+  session: { strategy: "jwt", maxAge: 60 * 60, updateAge: 5 * 60 },
   pages: { signIn: "/signin", error: "/signin" },
   providers: [
     Credentials({

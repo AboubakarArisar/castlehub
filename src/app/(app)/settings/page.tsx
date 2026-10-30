@@ -55,7 +55,7 @@ export default async function SettingsPage() {
         <p className="mt-2 text-body">Signed in{me.email ? ` as ${me.email}` : ""}.</p>
         <form action={signOutAction} className="mt-3">
           <button type="submit" className="h-10 rounded-sm border border-line-strong px-4 text-body font-semibold hover:border-ink">
-            sign out
+            log out
           </button>
         </form>
       </section>

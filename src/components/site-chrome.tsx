@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Dices, Heart, Palette, Plus, Search, Settings, ShieldCheck } from "lucide-react";
+import { Dices, Heart, LogOut, Palette, Plus, Search, Settings, ShieldCheck } from "lucide-react";
+import { signOutAction } from "@/actions/auth";
 import { Avatar } from "@/components/avatar";
 import { SignInButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
@@ -92,6 +93,16 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
               >
                 <Settings className="size-4" />
               </Link>
+              <form action={signOutAction} className="hidden sm:block">
+                <button
+                  type="submit"
+                  aria-label="Log out"
+                  title="Log out"
+                  className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-line-strong hover:text-ink"
+                >
+                  <LogOut className="size-4" />
+                </button>
+              </form>
               <Link
                 href={viewer.handle ? `/${viewer.handle}` : "/onboarding"}
                 aria-label="Your profile"
