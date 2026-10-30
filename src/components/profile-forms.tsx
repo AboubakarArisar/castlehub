@@ -49,7 +49,7 @@ export function ProfileForm({
   const e = state.errors ?? {};
   return (
     <form onSubmit={submitKeepingValues(action)} className="space-y-6 px-4 py-6 md:px-6">
-      <ImageUpload name="image" label="Photo" hint="Defaults to your Slack photo." initial={defaults.image ? [defaults.image] : []} error={e.image} />
+      <ImageUpload name="image" label="Photo" hint="Shown on your profile and posts." initial={defaults.image ? [defaults.image] : []} error={e.image} />
       <div>
         <label htmlFor="name" className="text-body font-medium">Name</label>
         <input id="name" name="name" required maxLength={60} defaultValue={defaults.name} aria-invalid={Boolean(e.name)} className={input} />

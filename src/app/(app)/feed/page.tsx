@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Composer } from "@/components/composer";
-import { SlackButton } from "@/components/landing-hero";
+import { SignInButton } from "@/components/landing-hero";
 import { Pager, pageParam } from "@/components/pager";
 import { Post } from "@/components/post";
 import { PageHeader } from "@/components/shell";
@@ -41,7 +41,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
               ? "Your account is suspended, so posting is paused."
               : viewer
                 ? "Pick a handle to start posting."
-                : "Sign in with the SkyCastle Slack to post and react."}
+                : "Sign in or create an account to post and react."}
           </p>
           <div className="mt-3">
             {viewer?.suspendedAt ? null : viewer ? (
@@ -49,7 +49,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
                 pick a handle
               </Link>
             ) : (
-              <SlackButton size="sm" />
+              <SignInButton size="sm" />
             )}
           </div>
         </div>

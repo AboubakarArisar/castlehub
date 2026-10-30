@@ -1,4 +1,4 @@
-// Slack's four-colour mark, for "sign in with Slack" buttons.
+// Slack's four-colour mark, for the "share to #builds" button.
 export function SlackLogo({ className = "size-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">

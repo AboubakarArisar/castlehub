@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { SlackLogo } from "@/components/slack-logo";
 import preview from "../../public/landing/castlehub-preview.png";
 
 // Centred headline, then one hero image: the CastleHub concept illustration.
@@ -42,7 +41,7 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
               open the feed <ArrowRight className="size-5" />
             </Link>
           ) : (
-            <SlackButton />
+            <SignInButton />
           )}
           <Link
             href="/discover"
@@ -51,7 +50,7 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
             explore projects
           </Link>
         </div>
-        <p className="text-label mt-4 text-muted">uses your skycastle slack account</p>
+        <p className="text-label mt-4 text-muted">free · sign up with your email</p>
       </div>
 
       <figure className="relative mx-auto mt-14 max-w-[1200px] md:mt-20 md:px-6">
@@ -69,8 +68,8 @@ export function LandingHero({ signedIn }: { signedIn: boolean }) {
   );
 }
 
-/** The main call to action for signed-out visitors: Slack mark + label. */
-export function SlackButton({ size = "lg" }: { size?: "lg" | "sm" }) {
+/** The main call to action for signed-out visitors. */
+export function SignInButton({ size = "lg" }: { size?: "lg" | "sm" }) {
   const big = size === "lg";
   return (
     <Link
@@ -79,9 +78,8 @@ export function SlackButton({ size = "lg" }: { size?: "lg" | "sm" }) {
         big ? "h-12 gap-3 px-6 text-body-l" : "h-9 gap-2 px-3.5 text-body"
       }`}
     >
-      <SlackLogo className={big ? "size-5" : "size-4"} />
       <span>
-        sign in<span className={big ? "" : "hidden sm:inline"}> with slack</span>
+        sign in<span className={big ? "" : "hidden sm:inline"}> or join</span>
       </span>
     </Link>
   );

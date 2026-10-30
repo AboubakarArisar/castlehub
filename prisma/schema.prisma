@@ -23,6 +23,14 @@ model User {
   website          String?
   skills           String[]  @default([])
   slackTeamId      String?
+  // scrypt hash from src/lib/password.ts. Null for accounts made before email sign-in.
+  passwordHash     String?
+  // Password reset: a question picked at sign-up and the scrypt hash of the normalized answer.
+  // After 5 wrong answers reset is locked for an hour.
+  securityQuestion   String?
+  securityAnswerHash String?
+  resetFailures      Int       @default(0)
+  resetLockedUntil   DateTime?
   // Set by an admin: a suspended user can read but not post, comment, react or publish.
   suspendedAt      DateTime?
   // Shown on the profile and filterable in search.

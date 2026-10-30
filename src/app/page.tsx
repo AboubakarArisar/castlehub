@@ -9,7 +9,7 @@ import {
   Globe,
   Palette,
 } from "lucide-react";
-import { LandingHero, SlackButton } from "@/components/landing-hero";
+import { LandingHero, SignInButton } from "@/components/landing-hero";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { getViewer } from "@/lib/session";
 import castleSky from "../../public/landing/castle-sky.png";
@@ -98,14 +98,14 @@ export default async function Landing() {
         <section className="mx-auto max-w-[1200px] px-4 pt-20 md:px-6 md:pt-28">
           <div className="grid gap-6 border border-line-strong p-6 md:grid-cols-[1fr_auto] md:items-center md:p-10">
             <div>
-              <p className="text-label text-muted">slack</p>
-              <p className="text-title-l mt-2">your SkyCastle Slack account is your key</p>
+              <p className="text-label text-muted">slack · #builds</p>
+              <p className="text-title-l mt-2">made for the SkyCastle community</p>
               <p className="mt-2 max-w-[60ch] text-body text-muted">
-                Sign in with Slack, no new password. Soon you&apos;ll also be able to share a launch to #builds with
-                one click. CastleHub only posts when you ask, and never reads your messages.
+                Sign up with your email in seconds. Share any launch to #builds on the SkyCastle Slack with
+                one click: the message is copied and Slack opens, ready to paste.
               </p>
             </div>
-            {signedIn ? feedButton : <SlackButton />}
+            {signedIn ? feedButton : <SignInButton />}
           </div>
         </section>
 
@@ -122,9 +122,9 @@ export default async function Landing() {
               your next build deserves an <span className="accent-serif">audience</span>
             </h2>
             <p className="mx-auto mt-4 max-w-[48ch] text-body-l text-muted">
-              Free for the SkyCastle community. Sign in with the Slack account you already use.
+              Free for the SkyCastle community. Sign up with your email.
             </p>
-            <div className="mt-8">{signedIn ? feedButton : <SlackButton />}</div>
+            <div className="mt-8">{signedIn ? feedButton : <SignInButton />}</div>
           </div>
         </section>
       </main>

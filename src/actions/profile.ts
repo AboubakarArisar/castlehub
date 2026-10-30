@@ -47,7 +47,7 @@ export async function updateProfile(_prev: FormState, formData: FormData): Promi
   if (parsed.data.timezone && !isValidTimeZone(parsed.data.timezone)) return { errors: { timezone: "Pick a timezone from the list" } };
 
   const { image, ...rest } = parsed.data;
-  // Keep the current avatar (e.g. the Slack photo) unless a new upload replaced it.
+  // Keep the current avatar unless a new upload replaced it.
   const data = image && image !== viewer.image ? (isOwnUpload(image, viewer.id) ? { ...rest, image } : null) : rest;
   if (!data) return { errors: { image: "Upload the image again" } };
 

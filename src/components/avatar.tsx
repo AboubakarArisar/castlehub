@@ -20,7 +20,7 @@ export function Avatar({
 }) {
   if (src) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- user photos from Slack or uploads
+      // eslint-disable-next-line @next/next/no-img-element -- user photos from uploads
       <img
         src={src}
         alt={label ?? ""}

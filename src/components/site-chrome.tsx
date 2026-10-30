@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Dices, Heart, Palette, Plus, Search, Settings, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import { SlackButton } from "@/components/landing-hero";
+import { SignInButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
 import { NavLink } from "@/components/nav-link";
 import { NotificationBell } from "@/components/notification-bell";
@@ -101,7 +101,7 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
               </Link>
             </>
           ) : (
-            <SlackButton size="sm" />
+            <SignInButton size="sm" />
           )}
         </div>
       </div>

@@ -17,6 +17,21 @@ export const handleSchema = z
   .refine((h) => !h.includes("--"), "No double dashes")
   .refine((h) => !RESERVED_HANDLES.has(h), "That handle is reserved");
 
+// ── Password reset ─────────────────────────────────────────
+
+export const SECURITY_QUESTIONS = [
+  "What was the name of your first pet?",
+  "What city were you born in?",
+  "What was the name of your first school?",
+  "What is your favourite game of all time?",
+  "What was your childhood nickname?",
+];
+
+/** Answers match regardless of case and extra spaces. */
+export function normalizeAnswer(answer: string) {
+  return answer.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 // ── Shared fields ──────────────────────────────────────────
 
 const optionalUrl = z

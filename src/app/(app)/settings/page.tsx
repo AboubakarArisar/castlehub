@@ -52,7 +52,7 @@ export default async function SettingsPage() {
       </section>
       <section className="border-t border-line px-4 py-6 md:px-6">
         <p className="text-label text-muted">account</p>
-        <p className="mt-2 text-body">Signed in with Slack{me.email ? ` as ${me.email}` : ""}.</p>
+        <p className="mt-2 text-body">Signed in{me.email ? ` as ${me.email}` : ""}.</p>
         <form action={signOutAction} className="mt-3">
           <button type="submit" className="h-10 rounded-sm border border-line-strong px-4 text-body font-semibold hover:border-ink">
             sign out

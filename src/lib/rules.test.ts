@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { collaboratorsField, embedUrl, handleSchema, mentionedHandles, isoWeek, postSchema, projectSchema, shiftWeek, slugify, sniffImage, weekRange } from "./rules";
+import { collaboratorsField, embedUrl, handleSchema, mentionedHandles, isoWeek, normalizeAnswer, postSchema, projectSchema, shiftWeek, slugify, sniffImage, weekRange } from "./rules";
 
 test("isoWeek follows ISO-8601 (Thursday rule, year edges)", () => {
   assert.equal(isoWeek(new Date("2026-10-20T12:00:00Z")), "2026-W43");
@@ -64,4 +64,8 @@ test("mentionedHandles finds unique handles, not emails or paths", () => {
 test("collaboratorsField cleans handles", () => {
   assert.deepEqual(collaboratorsField.parse("@Troy, raqib  @troy"), ["troy", "raqib"]);
   assert.equal(collaboratorsField.safeParse("a,b,c,d,e,f").success, false);
+});
+
+test("normalizeAnswer ignores case and spacing", () => {
+  assert.equal(normalizeAnswer("  Mr   Whiskers "), "mr whiskers");
 });
