@@ -1,6 +1,7 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { redirect, RedirectType } from "next/navigation";
 import { signIn, signOut } from "@/auth";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
@@ -18,20 +19,22 @@ function read(formData: FormData) {
   };
 }
 
-// signIn redirects by throwing, so only Auth.js errors are caught here.
+// Replace, not push: Back after signing in must not land on the sign-in page again.
 async function passwordSignIn(email: string, password: string, redirectTo: string): Promise<AuthState> {
   try {
-    await signIn("password", { email, password, redirectTo });
+    await signIn("password", { email, password, redirect: false });
   } catch (e) {
     if (e instanceof AuthError) return { error: "Wrong email or password." };
     throw e;
   }
-  return {};
+  redirect(redirectTo, RedirectType.replace);
 }
 
 export async function logIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const { email, password } = read(formData);
-  return passwordSignIn(email, password, "/feed");
+  // Set by src/proxy.ts. Only same-site paths, never "//evil.com".
+  const next = String(formData.get("next") ?? "");
+  return passwordSignIn(email, password, /^\/(?!\/)/.test(next) ? next : "/feed");
 }
 
 export async function signUp(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -99,5 +102,6 @@ export async function resetPassword(_prev: ResetState, formData: FormData): Prom
 }
 
 export async function signOutAction() {
-  await signOut({ redirectTo: "/" });
+  await signOut({ redirect: false });
+  redirect("/", RedirectType.replace);
 }

@@ -42,11 +42,12 @@ function SwitchLink({ prompt, href, label }: { prompt: string; href: string; lab
   );
 }
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, next }: { mode: "login" | "signup"; next?: string }) {
   const signup = mode === "signup";
   const [state, action, pending] = useActionState<AuthState, FormData>(signup ? signUp : logIn, {});
   return (
     <form onSubmit={submitKeepingValues(action)} className="mt-8 space-y-5 text-left">
+      {next && <input type="hidden" name="next" value={next} />}
       <FormError msg={state.error} />
       <Email />
       {signup ? (

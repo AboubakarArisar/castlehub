@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { signOutAction } from "@/actions/auth";
 import { ProfileForm } from "@/components/profile-forms";
 import { PageHeader } from "@/components/shell";
 import { LocationForm } from "@/components/world/location-form";
@@ -52,12 +51,7 @@ export default async function SettingsPage() {
       </section>
       <section className="border-t border-line px-4 py-6 md:px-6">
         <p className="text-label text-muted">account</p>
-        <p className="mt-2 text-body">Signed in{me.email ? ` as ${me.email}` : ""}.</p>
-        <form action={signOutAction} className="mt-3">
-          <button type="submit" className="h-10 rounded-sm border border-line-strong px-4 text-body font-semibold hover:border-ink">
-            log out
-          </button>
-        </form>
+        <p className="mt-2 text-body">Signed in{me.email ? ` as ${me.email}` : ""}. Log out from the menu under your photo.</p>
       </section>
     </>
   );

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Dices, Heart, LogOut, Palette, Plus, Search, Settings, ShieldCheck } from "lucide-react";
-import { signOutAction } from "@/actions/auth";
-import { Avatar } from "@/components/avatar";
+import { Heart, Plus, Search } from "lucide-react";
+import { AccountMenu } from "@/components/account-menu";
 import { SignInButton } from "@/components/landing-hero";
 import { Logo, Wordmark } from "@/components/logo";
 import { NavLink } from "@/components/nav-link";
@@ -15,6 +14,8 @@ const NAV = [
   { href: "/discover", label: "discover" },
   { href: "/launchpad", label: "launchpad" },
   { href: "/world", label: "world" },
+  { href: "/castle-wall", label: "castle wall" },
+  { href: "/roulette", label: "roulette" },
 ];
 
 /** One header for the whole site: landing page and app alike. */
@@ -49,23 +50,7 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
           >
             <Search className="size-4" />
           </Link>
-          <Link
-            href="/castle-wall"
-            aria-label="Castle Wall"
-            title="Castle Wall: draw on the community mural"
-            className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-amber hover:text-amber"
-          >
-            <Palette className="size-4" />
-          </Link>
-          <Link
-            href="/roulette"
-            aria-label="Builder Roulette"
-            title="Builder Roulette: meet a random builder"
-            className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-amber hover:text-amber"
-          >
-            <Dices className="size-4" />
-          </Link>
-          <ThemeToggle />
+          {!viewer && <ThemeToggle />}
           {viewer && <NotificationBell initial={unread} />}
           {viewer ? (
             <>
@@ -75,41 +60,7 @@ export async function SiteHeader({ viewer }: { viewer: Viewer | null }) {
               >
                 <Plus className="size-4" /> publish
               </Link>
-              {viewer.isAdmin && (
-                <Link
-                  href="/admin"
-                  aria-label="Admin"
-                  title="Admin"
-                  className="hidden size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-cobalt hover:text-cobalt sm:grid"
-                >
-                  <ShieldCheck className="size-4" />
-                </Link>
-              )}
-              <Link
-                href="/settings"
-                aria-label="Settings"
-                title="Settings"
-                className="hidden size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-line-strong hover:text-ink sm:grid"
-              >
-                <Settings className="size-4" />
-              </Link>
-              <form action={signOutAction} className="hidden sm:block">
-                <button
-                  type="submit"
-                  aria-label="Log out"
-                  title="Log out"
-                  className="grid size-9 place-items-center rounded-sm border border-line text-muted transition-colors duration-120 hover:border-line-strong hover:text-ink"
-                >
-                  <LogOut className="size-4" />
-                </button>
-              </form>
-              <Link
-                href={viewer.handle ? `/${viewer.handle}` : "/onboarding"}
-                aria-label="Your profile"
-                className="rounded-sm ring-cobalt transition-shadow hover:ring-2"
-              >
-                <Avatar seed={viewer.handle ?? viewer.id} src={viewer.image} size={36} />
-              </Link>
+              <AccountMenu viewer={viewer} links={NAV} />
             </>
           ) : (
             <SignInButton size="sm" />

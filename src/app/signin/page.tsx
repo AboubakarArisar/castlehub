@@ -15,7 +15,7 @@ const COPY = {
 
 export default async function SignInPage({ searchParams }: PageProps<"/signin">) {
   if (await getViewer()) redirect("/feed");
-  const { mode: m } = await searchParams;
+  const { mode: m, next } = await searchParams;
   const mode = m === "signup" || m === "forgot" ? m : "login";
   const copy = COPY[mode];
 
@@ -29,7 +29,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/signin">)
       </h1>
       <p className="mt-3 text-body-l text-muted">{copy.sub}</p>
       {/* key: switching modes resets the form state */}
-      {mode === "forgot" ? <ResetForm /> : <AuthForm key={mode} mode={mode} />}
+      {mode === "forgot" ? <ResetForm /> : <AuthForm key={mode} mode={mode} next={typeof next === "string" ? next : undefined} />}
     </main>
   );
 }
