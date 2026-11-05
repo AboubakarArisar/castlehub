@@ -18,8 +18,20 @@ const LABEL: Record<string, string> = {
   wall_restrict: "restricted from wall",
   wall_unrestrict: "allowed on wall",
   wall_dismiss_reports: "dismissed reports",
+  hackathon_create: "created hackathon",
+  hackathon_edit: "edited hackathon",
+  hackathon_publish: "published hackathon",
+  hackathon_archive: "archived hackathon",
+  hackathon_unarchive: "unarchived hackathon",
+  hackathon_close: "closed submissions",
+  hackathon_reopen: "reopened submissions",
+  hackathon_schedule: "back to schedule",
+  build_feature: "featured build",
+  build_unfeature: "unfeatured build",
+  build_hide: "hid build",
+  build_restore: "restored build",
 };
-const SERIOUS = /^(delete|suspend$|wall_(hide|remove_art|release|restrict|reject))/;
+const SERIOUS = /^(delete|suspend$|build_hide|wall_(hide|remove_art|release|restrict|reject))/;
 
 export default async function AdminLog() {
   // Layouts render in parallel with pages, so every admin page checks for itself.

@@ -70,6 +70,7 @@ model User {
   discoveredBy   Discovery[]           @relation("discovered")
   wallTile       WallTile?
   wallReports    WallReport[]
+  hackBuilds     HackathonSubmission[]
 
   @@index([streakEnd])
   @@index([onWorldMap, countryCode])
@@ -445,4 +446,73 @@ model WallReport {
 
   @@unique([tileId, reporterId])
   @@index([resolvedAt])
+}
+
+// ── Hackathons ─────────────────────────────────────────────
+
+// Admin override of the date-based schedule: close early, or reopen after the deadline.
+enum HackathonOverride {
+  OPEN
+  CLOSED
+}
+
+// One event. Its status is derived (src/lib/hackathons.ts): draft until publishedAt, archived
+// once archivedAt is set, otherwise upcoming / open / closed from the UTC dates and override.
+model Hackathon {
+  id       String             @id @default(cuid())
+  slug     String             @unique
+  title    String
+  summary  String?
+  brief    String             @default("")
+  theme    String?
+  rules    String?
+  prizes   String?
+  coverUrl String?
+  linkUrl  String?
+  opensAt  DateTime?
+  closesAt DateTime?
+  override HackathonOverride?
+
+  publishedAt DateTime?
+  archivedAt  DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  submissions HackathonSubmission[]
+
+  @@index([publishedAt, closesAt])
+}
+
+// A member's build for one hackathon. One per member per event (the unique makes duplicate
+// and simultaneous submissions impossible). Withdrawn and hidden entries are kept but never
+// shown publicly; a member's edit never clears hiddenAt.
+model HackathonSubmission {
+  id          String   @id @default(cuid())
+  hackathonId String
+  authorId    String
+  name        String
+  tagline     String?
+  description String?
+  demoUrl     String?
+  repoUrl     String?
+  videoUrl    String?
+  coverUrl    String?
+  images      String[] @default([])
+  tech        String[] @default([])
+
+  featuredAt   DateTime?
+  withdrawnAt  DateTime?
+  hiddenAt     DateTime?
+  hiddenReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([hackathonId, authorId])
+  @@index([hackathonId, createdAt])
+  @@index([authorId, createdAt])
 }

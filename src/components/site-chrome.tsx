@@ -13,6 +13,7 @@ const NAV = [
   { href: "/feed", label: "feed" },
   { href: "/discover", label: "discover" },
   { href: "/launchpad", label: "launchpad" },
+  { href: "/hackathons", label: "hackathons" },
   { href: "/world", label: "world" },
   { href: "/castle-wall", label: "castle wall" },
   { href: "/roulette", label: "roulette" },

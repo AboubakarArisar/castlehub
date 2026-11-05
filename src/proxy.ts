@@ -11,5 +11,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/settings", "/notifications", "/onboarding", "/projects/new", "/admin/:path*", "/castle-wall/edit", "/:handle/:slug/edit"],
+  matcher: ["/settings", "/notifications", "/onboarding", "/projects/new", "/admin/:path*", "/castle-wall/edit", "/hackathons/mine", "/hackathons/:slug/submit", "/hackathons/:slug/builds/:id/edit", "/:handle/:slug/edit"],
 };
